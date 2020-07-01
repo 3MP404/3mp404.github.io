@@ -1,0 +1,100 @@
+I"J<h1 id="4-크기로-고정-출력하기">4 크기로 고정 출력하기</h1>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#include&lt;stdio.h&gt;
+#define n 4
+</span><span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
+<span class="p">{</span>
+	<span class="kt">FILE</span> <span class="o">*</span><span class="n">fp</span><span class="o">=</span><span class="n">fopen</span><span class="p">(</span><span class="s">"hi.txt"</span><span class="p">,</span><span class="s">"w"</span><span class="p">);</span>
+	<span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span><span class="n">i</span><span class="o">&lt;</span><span class="n">n</span><span class="p">;</span><span class="n">i</span><span class="o">++</span><span class="p">)</span>
+	<span class="p">{</span>
+		<span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">j</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span><span class="n">j</span><span class="o">&lt;</span><span class="n">n</span><span class="o">-</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">;</span><span class="n">j</span><span class="o">++</span><span class="p">)</span>
+		<span class="p">{</span>
+			<span class="n">fprintf</span><span class="p">(</span><span class="n">fp</span><span class="p">,</span><span class="s">" "</span><span class="p">);</span>
+			<span class="n">printf</span><span class="p">(</span><span class="s">" "</span><span class="p">);</span>
+		<span class="p">}</span>
+		<span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">j</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span><span class="n">j</span><span class="o">&lt;</span><span class="n">i</span><span class="o">*</span><span class="mi">2</span><span class="o">+</span><span class="mi">1</span><span class="p">;</span><span class="n">j</span><span class="o">++</span><span class="p">)</span>
+			<span class="p">{</span>
+				<span class="n">fprintf</span><span class="p">(</span><span class="n">fp</span><span class="p">,</span><span class="s">"*"</span><span class="p">);</span>
+				<span class="n">printf</span><span class="p">(</span><span class="s">"*"</span><span class="p">);</span>
+			<span class="p">}</span>
+		<span class="n">fprintf</span><span class="p">(</span><span class="n">fp</span><span class="p">,</span><span class="s">"</span><span class="se">\n</span><span class="s">"</span><span class="p">);</span>
+		<span class="n">printf</span><span class="p">(</span><span class="s">"</span><span class="se">\n</span><span class="s">"</span><span class="p">);</span>
+	<span class="p">}</span>
+	<span class="n">fclose</span><span class="p">(</span><span class="n">fp</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h1 id="입력받은-숫자-크기만큼-찍기">입력받은 숫자 크기만큼 찍기</h1>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#include&lt;stdio.h&gt;
+</span><span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
+<span class="p">{</span>
+	<span class="kt">FILE</span> <span class="o">*</span><span class="n">fp</span><span class="o">=</span><span class="n">fopen</span><span class="p">(</span><span class="s">"hi.txt"</span><span class="p">,</span><span class="s">"w"</span><span class="p">);</span>
+	<span class="kt">int</span> <span class="n">n</span><span class="p">;</span>
+	<span class="n">scanf</span><span class="p">(</span><span class="s">"%d"</span><span class="p">,</span><span class="o">&amp;</span><span class="n">n</span><span class="p">);</span>
+	<span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span><span class="n">i</span><span class="o">&lt;</span><span class="n">n</span><span class="p">;</span><span class="n">i</span><span class="o">++</span><span class="p">)</span>
+	<span class="p">{</span>
+		<span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">j</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span><span class="n">j</span><span class="o">&lt;</span><span class="n">n</span><span class="o">-</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">;</span><span class="n">j</span><span class="o">++</span><span class="p">)</span>
+		<span class="p">{</span>
+			<span class="n">fprintf</span><span class="p">(</span><span class="n">fp</span><span class="p">,</span><span class="s">" "</span><span class="p">);</span>
+			<span class="n">printf</span><span class="p">(</span><span class="s">" "</span><span class="p">);</span>
+		<span class="p">}</span>
+		<span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">j</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span><span class="n">j</span><span class="o">&lt;</span><span class="n">i</span><span class="o">*</span><span class="mi">2</span><span class="o">+</span><span class="mi">1</span><span class="p">;</span><span class="n">j</span><span class="o">++</span><span class="p">)</span>
+			<span class="p">{</span>
+				<span class="n">fprintf</span><span class="p">(</span><span class="n">fp</span><span class="p">,</span><span class="s">"*"</span><span class="p">);</span>
+				<span class="n">printf</span><span class="p">(</span><span class="s">"*"</span><span class="p">);</span>
+			<span class="p">}</span>
+		<span class="n">fprintf</span><span class="p">(</span><span class="n">fp</span><span class="p">,</span><span class="s">"</span><span class="se">\n</span><span class="s">"</span><span class="p">);</span>
+		<span class="n">printf</span><span class="p">(</span><span class="s">"</span><span class="se">\n</span><span class="s">"</span><span class="p">);</span>
+	<span class="p">}</span>
+	<span class="n">fclose</span><span class="p">(</span><span class="n">fp</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h1 id="그-이외의-파일입출력-함수">그 이외의 파일입출력 함수</h1>
+
+<h3 id="fgetc--fputc">fgetc , fputc</h3>
+
+<p>파일에 단 1개의 데이터를 읽어온다. fgetc는 값을 읽어오고, fputc는 값을 파일에 입력한다.</p>
+
+<p>fgetc(파일포인터);</p>
+
+<p>fputs(입력할 값, 파일포인터);</p>
+
+<h3 id="fgets--fputs">fgets , fputs</h3>
+
+<p>fgets와 fputs와 하는 일은 똑같지만, 이것은 1개의 데이터가 아니라 한 줄을 읽어온다.</p>
+
+<p>fgets(받아올 배열 이름, 받아올 값 크기의 제한, 파일포인터);</p>
+
+<p>fputs(입력할 문자열(배열명), 파일포인터);</p>
+
+<h3 id="fseek">fseek</h3>
+
+<p>파일포인터를 내가 원하는 위치로 이동시키는 함수이다.</p>
+
+<p>fseek(파일포인터, 이동할 거리, 시작할 위치);</p>
+
+<p>시작할 위치에는 총 3개의 종류가 있다.</p>
+
+<p>SEEK_SET : 파일의 시작</p>
+
+<p>SEEK_CUR : 현재 위치</p>
+
+<p>SEEK_END : 파일의 끝</p>
+
+<p>이동할 거리는 ~L로 사용한다. 6L 하면 6칸 오른쪽으로, -8L하면 8칸 왼쪽으로 이동시킨다는 뜻이다.</p>
+
+<h3 id="rewind">rewind</h3>
+
+<p>파일포인터를 처음 위치로 초기화해준다.</p>
+
+<p>rewind(파일포인터);</p>
+
+<h3 id="ftell">ftell</h3>
+
+<p>파일포인터의 현 위치를 구해준다.</p>
+
+<p>ftell(파일포인터);</p>
+
+:ET

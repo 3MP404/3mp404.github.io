@@ -1,0 +1,51 @@
+I"�	<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>login as: level6 
+level6@~~~~<span class="s1">'s password: 
+
+
+hint - 인포샵 bbs의 텔넷 접속 메뉴에서 많이 사용되던 해킹 방법이다. 
+
+
+</span></code></pre></div></div>
+
+<p>level6/what the hell로 접속하자, 평소와는 다른 화면이 나온다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+  <span class="c">##################################### </span>
+  <span class="c">##                                 ## </span>
+  <span class="c">##         텔넷 접속 서비스        ## </span>
+  <span class="c">##                                 ## </span>
+  <span class="c">##                                 ## </span>
+  <span class="c">##     1. 하이텔     2. 나우누리   ## </span>
+  <span class="c">##     3. 천리안                   ## </span>
+  <span class="c">##                                 ## </span>
+  <span class="c">##################################### </span>
+
+접속하고 싶은 bbs를 선택하세요 :
+</code></pre></div></div>
+
+<p>1,2,3 모두 다 해 보았지만, ip주소에 연결한다는 내용이 나오고 텔넷이 종료되어 버렸다. 그렇다는건 서버에서 하라는 대로 따라해선 다음 레벨로 넘어갈 수 없다는 것이다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>login as: level6 
+level6@~~~~<span class="s1">'s password: 
+
+
+hint - 인포샵 bbs의 텔넷 접속 메뉴에서 많이 사용되던 해킹 방법이다. 
+
+
+
+[level6@ftz level6]$
+</span></code></pre></div></div>
+
+<p>위 화면에서 ctrl+c를 누르면 서버가 실행하는것을 종료시킬 수 있다. 명령어를 칠 수 있게 된 것이다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>level6@ftz level6]<span class="nv">$ </span><span class="nb">ls 
+</span>hint  password  public_html  tmp  tn 
+<span class="o">[</span>level6@ftz level6]<span class="nv">$ </span><span class="nb">cat </span>password 
+Level7 password is <span class="s2">"come together"</span><span class="nb">.</span> 
+<span class="o">[</span>level6@ftz level6]<span class="err">$</span>
+</code></pre></div></div>
+
+<p>떡하니 password라는 파일이 있어 읽었더니 답이 나와 버렸다.</p>
+
+<p>level7’s password:”come together”</p>
+:ET

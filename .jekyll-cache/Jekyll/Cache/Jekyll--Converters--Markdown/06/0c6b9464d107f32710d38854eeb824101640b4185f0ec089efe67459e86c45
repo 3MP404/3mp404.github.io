@@ -1,0 +1,13 @@
+I"<p>```bash
+login: gate
+Password:
+Last login: Sat Feb 27 11:04:23 on tty1
+[gate@localhost gate]$ ls
+gremlin  gremlin.c
+[gate@localhost gate]$ cat gremlin.c
+/*
+        The Lord of the BOF : The Fellowship of the BOF
+        - gremlin
+        - simple BOF
+*/</p>
+:ET

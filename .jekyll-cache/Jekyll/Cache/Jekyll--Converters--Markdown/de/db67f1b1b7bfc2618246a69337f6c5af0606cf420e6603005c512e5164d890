@@ -1,0 +1,15 @@
+I"E<p>```bash
+login: goblin
+Password:
+Last login: Fri Jul 26 18:35:38 from 192.168.194.1
+[goblin@localhost goblin]$ ls
+orc  orc.c 
+[goblin@localhost goblin]$ cat orc.c
+/*
+        The Lord of the BOF : The Fellowship of the BOF
+        - orc
+        - egghunter
+*/
+#include <stdio.h>
+#include <stdlib.h></stdlib.h></stdio.h></p>
+:ET

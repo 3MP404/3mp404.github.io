@@ -1,0 +1,12 @@
+I"<p>```bash
+login: wolfman
+Password:
+[wolfman@localhost wolfman]$ ls
+darkelf  darkelf.c  tmp
+[wolfman@localhost wolfman]$ cat darkelf.c
+/*
+        The Lord of the BOF : The Fellowship of the BOF
+        - darkelf
+        - egghunter + buffer hunter + check length of argv[1]
+*/</p>
+:ET

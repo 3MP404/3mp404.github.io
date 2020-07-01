@@ -1,0 +1,63 @@
+I"�<p>strtok 함수다.</p>
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#include&lt;stdio.h&gt;
+#include&lt;string.h&gt;
+</span><span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
+<span class="p">{</span>
+	<span class="kt">char</span> <span class="n">a</span><span class="p">[]</span><span class="o">=</span><span class="s">"hello C world"</span><span class="p">;</span>
+	<span class="kt">char</span> <span class="o">*</span><span class="n">p</span><span class="o">=</span><span class="n">strtok</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="s">" "</span><span class="p">);</span>
+	<span class="k">while</span><span class="p">(</span><span class="n">p</span><span class="o">!=</span><span class="nb">NULL</span><span class="p">)</span>
+	<span class="p">{</span>
+		<span class="n">printf</span><span class="p">(</span><span class="s">"%s</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span><span class="n">p</span><span class="p">);</span>
+		<span class="n">p</span><span class="o">=</span><span class="n">strtok</span><span class="p">(</span><span class="nb">NULL</span><span class="p">,</span><span class="s">" "</span> <span class="p">);</span>
+	<span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+<p><img src="https://user-images.githubusercontent.com/51374792/67154084-70ebeb80-f330-11e9-9247-e545f847ac92.png" alt="strtok 결과" /></p>
+
+<p>strtok은 문자열에서 문자를 기준으로 나누어 주는 역할을 한다.</p>
+
+<p>위처럼 strtok(a,” “); 처럼 사용한다면 a에 저장된 문자열을 공백마다 끊는다는 의미가 된다.</p>
+
+<p>또한 strtok(NULL,” “); 에서 NULL은 이전의 문자열을 계속하여 사용하겠다는 의미이다.</p>
+
+<p>잘라진 부분부터 문자열 자르기를 시작하겠다는 의미.</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#include&lt;stdio.h&gt;
+#include&lt;string.h&gt;
+</span><span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
+<span class="p">{</span>
+	<span class="kt">char</span> <span class="n">a</span><span class="p">[]</span><span class="o">=</span><span class="s">"helloCworld"</span><span class="p">;</span>
+	<span class="kt">char</span> <span class="o">*</span><span class="n">p</span><span class="o">=</span><span class="n">strtok</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="s">"C"</span><span class="p">);</span>
+	<span class="k">while</span><span class="p">(</span><span class="n">p</span><span class="o">!=</span><span class="nb">NULL</span><span class="p">)</span>
+	<span class="p">{</span>
+		<span class="n">printf</span><span class="p">(</span><span class="s">"%s</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span><span class="n">p</span><span class="p">);</span>
+		<span class="n">p</span><span class="o">=</span><span class="n">strtok</span><span class="p">(</span><span class="nb">NULL</span><span class="p">,</span><span class="s">" "</span><span class="p">);</span>
+	<span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+<p><img src="https://user-images.githubusercontent.com/51374792/67154184-a7c30100-f332-11e9-985c-215b8cdf2a47.png" alt="strtok 결과-2" /></p>
+
+<p>사실상 기준으로 나눈다기보다 그 문자를 없애버린다는 표현도 맞을 것 같다.</p>
+
+<p>이렇게 짜면 C라는 문자가 사라진 상태로 분리되는 것을 알 수 있다.</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#include&lt;stdio.h&gt;
+#include&lt;string.h&gt;
+</span><span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
+<span class="p">{</span>
+	<span class="kt">char</span> <span class="n">a</span><span class="p">[]</span><span class="o">=</span><span class="s">"abcdefg"</span><span class="p">;</span>
+	<span class="kt">char</span> <span class="o">*</span><span class="n">p</span><span class="o">=</span><span class="n">strtok</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="s">"cf"</span><span class="p">);</span>
+	<span class="k">while</span><span class="p">(</span><span class="n">p</span><span class="o">!=</span><span class="nb">NULL</span><span class="p">)</span>
+	<span class="p">{</span>
+		<span class="n">printf</span><span class="p">(</span><span class="s">"%s</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span><span class="n">p</span><span class="p">);</span>
+		<span class="n">p</span><span class="o">=</span><span class="n">strtok</span><span class="p">(</span><span class="nb">NULL</span><span class="p">,</span><span class="s">"cf"</span><span class="p">);</span>
+	<span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p><img src="https://user-images.githubusercontent.com/51374792/67154294-c5916580-f334-11e9-9ed4-cea65b7ef7d5.png" alt="주석 2019-10-20 115351" /></p>
+
+<p>또한 하나의 문자열을 여러 개의 기준으로도 자를 수 있다.</p>
+
+<p>c와 f를 기준으로 나눠졌다.</p>
+:ET

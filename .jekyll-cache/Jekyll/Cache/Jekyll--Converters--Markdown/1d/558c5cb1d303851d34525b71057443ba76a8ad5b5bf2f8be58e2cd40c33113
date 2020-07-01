@@ -1,0 +1,45 @@
+I"�<p>atoi 함수는 문자열을 정수로 바꾸어준다.</p>
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#include&lt;stdio.h&gt;
+#include&lt;stdlib.h&gt;
+</span><span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
+<span class="p">{</span>
+	<span class="kt">char</span> <span class="n">a</span><span class="p">[</span><span class="mi">10</span><span class="p">]</span><span class="o">=</span><span class="s">"283@30"</span><span class="p">;</span>
+	<span class="kt">int</span> <span class="n">n</span><span class="p">;</span>
+	<span class="n">n</span><span class="o">=</span><span class="n">atoi</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>
+	<span class="n">printf</span><span class="p">(</span><span class="s">"%d"</span><span class="p">,</span><span class="n">n</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div></div>
+<p>–&gt;283</p>
+
+<p>atoi는 특수문자를 받으면 그 이후로 변환을 멈춘다.</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#include&lt;stdio.h&gt;
+#include&lt;stdlib.h&gt;
+</span><span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
+<span class="p">{</span>
+	<span class="kt">char</span> <span class="n">a</span><span class="p">[</span><span class="mi">10</span><span class="p">]</span><span class="o">=</span><span class="s">"283@30"</span><span class="p">;</span>
+	<span class="kt">int</span> <span class="n">n</span><span class="p">;</span>
+	<span class="n">n</span><span class="o">=</span><span class="n">atoi</span><span class="p">(</span><span class="n">a</span><span class="o">+</span><span class="mi">4</span><span class="p">);</span>
+	<span class="n">printf</span><span class="p">(</span><span class="s">"%d"</span><span class="p">,</span><span class="n">n</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div></div>
+<p>–&gt;30</p>
+
+<p>배열+숫자를 하면 그 이후부터의 변환이 가능하다.</p>
+
+<p>a+4는 @바로 다음이기 때문에 3부터 끝까지 출력되는 것이다.</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#include&lt;stdio.h&gt;
+#include&lt;stdlib.h&gt;
+</span><span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
+<span class="p">{</span>
+	<span class="kt">char</span> <span class="n">a</span><span class="p">[</span><span class="mi">10</span><span class="p">]</span><span class="o">=</span><span class="s">"283@30"</span><span class="p">;</span>
+	<span class="kt">float</span> <span class="n">n</span><span class="p">;</span>
+	<span class="n">n</span><span class="o">=</span><span class="n">atoi</span><span class="p">(</span><span class="n">a</span><span class="o">+</span><span class="mi">4</span><span class="p">);</span>
+	<span class="n">printf</span><span class="p">(</span><span class="s">"%f"</span><span class="p">,</span><span class="n">n</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div></div>
+<p>–&gt;30.000000</p>
+
+<p>atoi의 결과값을 받아오는 변수의 자료형을 변환할 수도 있다.</p>
+:ET

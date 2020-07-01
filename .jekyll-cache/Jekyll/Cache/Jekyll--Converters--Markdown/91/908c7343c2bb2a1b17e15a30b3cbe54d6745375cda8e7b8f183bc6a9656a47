@@ -1,0 +1,64 @@
+I"=	<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>login as: level7 
+level7@~~~~<span class="s1">'s password: 
+[level7@ftz level7]$ ls 
+hint  public_html  tmp 
+[level7@ftz level7]$ cat hint 
+
+
+/bin/level7 명령을 실행하면, 패스워드 입력을 요청한다. 
+
+1. 패스워드는 가까운곳에.. 
+2. 상상력을 총동원하라. 
+3. 2진수를 10진수를 바꿀 수 있는가? 
+4. 계산기 설정을 공학용으로 바꾸어라. 
+
+
+[level7@ftz level7]$
+</span></code></pre></div></div>
+
+<p>level7/come together로 접속해 hint를 읽었다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>level7@ftz level7]<span class="nv">$ </span><span class="nb">cd</span> /bin 
+<span class="o">[</span>level7@ftz bin]<span class="nv">$ </span>./level7 
+Insert The Password : sjkflds
+
+<span class="nb">cat</span> :/bin/wrong.txt: 그런 파일이나 디렉토리가 없음
+
+<span class="o">[</span>level7@ftz bin]<span class="err">$</span>
+</code></pre></div></div>
+
+<p>그런 파일이나 디렉토리가 없다니….</p>
+
+<p>구글링 해보니 FTZ파일의 문제라고 한다.</p>
+
+<p>원래라면 틀렸을 때, 이렇게 나와야 한다,</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Wrong Password....!! 
+
+<span class="nt">--_--_-</span> <span class="nt">--____-</span> <span class="nt">---_-__</span> <span class="nt">--__-_-</span>
+</code></pre></div></div>
+
+<p>힌트는 2진수를 10진수로 변환하라고 했었다.</p>
+
+<p>각 띄어쓰기를 기준으로 위의 것이 1, 아래의 것이 0이 아닐까.</p>
+
+<p>진수 계산기로 변환해 보았더니,</p>
+
+<p>109, 97, 116, 101</p>
+
+<p>순서로 나왔다.</p>
+
+<p>아스키코드로 변경한다면 순서대로 m,a,t,e다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>level7@ftz bin]<span class="nv">$ </span>./level7 
+Insert The Password : mate 
+
+Congratulation! next password is <span class="s2">"break the world"</span><span class="nb">.</span> 
+
+<span class="o">[</span>level7@ftz bin]<span class="nv">$ </span>
+</code></pre></div></div>
+
+<p>level8의 비밀번호가 나왔다.</p>
+
+<p>level8’s password:”mate”</p>
+:ET

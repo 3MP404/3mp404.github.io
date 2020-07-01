@@ -1,0 +1,16 @@
+I"�<p>strtok 함수다.</p>
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#include&lt;stdio.h&gt;
+#include&lt;string.h&gt;
+</span><span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
+<span class="p">{</span>
+	<span class="kt">char</span> <span class="n">a</span><span class="p">[]</span><span class="o">=</span><span class="s">"hello C world"</span><span class="p">;</span>
+	<span class="kt">char</span> <span class="o">*</span><span class="n">p</span><span class="o">=</span><span class="n">strtok</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="s">" "</span><span class="p">);</span>
+	<span class="k">while</span><span class="p">(</span><span class="n">p</span><span class="o">!=</span><span class="nb">NULL</span><span class="p">)</span>
+	<span class="p">{</span>
+		<span class="n">printf</span><span class="p">(</span><span class="s">"%s</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span><span class="n">p</span><span class="p">);</span>
+		<span class="n">p</span><span class="o">=</span><span class="n">strtok</span><span class="p">(</span><span class="nb">NULL</span><span class="p">,</span><span class="s">" "</span> <span class="p">);</span>
+	<span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+<p><img src="https://user-images.githubusercontent.com/51374792/67154084-70ebeb80-f330-11e9-9247-e545f847ac92.png" alt="strtok 결과" /></p>
+:ET

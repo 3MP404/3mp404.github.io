@@ -1,0 +1,13 @@
+I"�<p>Linear search(선형 탐색)은 모든 인덱스를 하나하나 확인하며 값을 찾는다.</p>
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">int</span> <span class="nf">lin</span><span class="p">(</span><span class="kt">int</span> <span class="n">a</span><span class="p">[],</span><span class="kt">int</span> <span class="n">len</span><span class="p">,</span><span class="kt">int</span> <span class="n">find</span><span class="p">)</span>
+<span class="p">{</span>
+	<span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span><span class="n">i</span><span class="o">&lt;</span><span class="n">len</span><span class="p">;</span><span class="n">i</span><span class="o">++</span><span class="p">)</span>
+	<span class="p">{</span>
+		<span class="k">if</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">==</span><span class="n">find</span><span class="p">)</span>
+			<span class="k">return</span> <span class="n">i</span><span class="p">;</span>
+	<span class="p">}</span>
+	<span class="k">return</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div>
+<p>len은 총 배열의 길이, find는 찾을 값이다.</p>
+:ET

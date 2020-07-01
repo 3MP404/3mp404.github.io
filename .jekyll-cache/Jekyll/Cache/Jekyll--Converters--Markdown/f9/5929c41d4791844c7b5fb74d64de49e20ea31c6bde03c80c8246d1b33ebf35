@@ -1,0 +1,12 @@
+I"é<p>```bash
+login: gremlin
+Password:
+[gremlin@localhost gremlin]$ ls
+cobolt  cobolt.c
+[gremlin@localhost gremlin]$ cat cobolt.c
+/*
+        The Lord of the BOF : The Fellowship of the BOF
+        - cobolt
+        - small buffer
+*/</p>
+:ET

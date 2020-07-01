@@ -1,0 +1,13 @@
+I"�<p>atoi 함수는 문자열을 정수로 바꾸어준다.</p>
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#include&lt;stdio.h&gt;
+#include&lt;stdlib.h&gt;
+</span><span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
+<span class="p">{</span>
+	<span class="kt">char</span> <span class="n">a</span><span class="p">[</span><span class="mi">10</span><span class="p">]</span><span class="o">=</span><span class="s">"283@30"</span><span class="p">;</span>
+	<span class="kt">int</span> <span class="n">n</span><span class="p">;</span>
+	<span class="n">n</span><span class="o">=</span><span class="n">atoi</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>
+	<span class="n">printf</span><span class="p">(</span><span class="s">"%d"</span><span class="p">,</span><span class="n">n</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div></div>
+<p>–&gt;283</p>
+:ET

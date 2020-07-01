@@ -1,0 +1,17 @@
+I"ç<p>```cpp
+#include<stdio.h>
+int main()
+{
+	int a,n[1000];
+	scanf("%d",&amp;a);
+	for(int i=0;i&lt;a;i++)
+	{
+		scanf("%d",&amp;n[i]);
+	}
+	for(int i=0;i&lt;2;i++)
+	{
+		for(int j=0;j&lt;a;j++)
+			printf("%d\n",n[j]);
+	}
+}</stdio.h></p>
+:ET

